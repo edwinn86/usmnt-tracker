@@ -1,0 +1,223 @@
+/* ==========================================
+   BASE
+   ========================================== */
+body {
+  background-color: #0b111e;
+  color: #ffffff;
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #ffffff;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 40px;
+}
+
+/* ==========================================
+   TAB NAVIGATION
+   ========================================== */
+.tab-bar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 24px 0;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: transparent;
+  border: 2px solid #1e3a8a;
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  border-color: #0052cc;
+  color: #ffffff;
+}
+
+.tab-button.active {
+  background: #0052cc;
+  border-color: #0052cc;
+  color: #ffffff;
+}
+
+/* ==========================================
+   PLAYER GRID (layout of all cards)
+   ========================================== */
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 40px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   PLAYER CARD — container / hover / accent bar
+   ========================================== */
+.player-card {
+  background: linear-gradient(135deg, #0f1c3f 0%, #080f26 100%);
+  border: 2px solid #1e3a8a;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+}
+
+.player-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 82, 204, 0.4);
+  border-color: #0052cc;
+}
+
+/* Top patriotic accent bar */
+.player-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #ff0033 0%, #ffffff 50%, #0052cc 100%);
+  z-index: 2;
+}
+
+/* ==========================================
+   PLAYER CARD — photo
+   ========================================== */
+.player-photo {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  border: 3px solid #1e3a8a;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+}
+
+/* ==========================================
+   PLAYER CARD — text hierarchy
+   Name > Position > League > Team > Vitals
+   ========================================== */
+.player-card h2 {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 20px 16px 4px 16px;
+  color: #ffffff;
+}
+
+.player-card .position {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #e2e8f0;
+  letter-spacing: 1px;
+  margin: 4px 16px 2px 16px;
+}
+
+.player-card .league {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #60a5fa;
+  letter-spacing: 0.5px;
+  margin: 0 16px 2px 16px;
+}
+
+.player-card .team {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0 16px 16px 16px;
+}
+
+.vitals {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.vitals .divider {
+  color: #475569;
+}
+
+/* ==========================================
+   PLAYER CARD — stats grid (bottom band)
+   ========================================== */
+.stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background-color: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: auto;
+}
+
+.stat {
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Highlight the Rating stat (2nd column) in gold */
+.stat:nth-child(2) .stat-value {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.status-message {
+  text-align: center;
+  color: #94a3b8;
+  padding: 40px;
+  font-size: 1rem;
+}
+
+.status-message.error {
+  color: #f87171;
+}
