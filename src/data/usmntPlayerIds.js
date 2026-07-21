@@ -40,6 +40,7 @@ export const usmntProspectIds = [
   1448104, // Ethan Kohler
   1715268, // Adri Mehmeti
   1489675, //Julian Hall
+  1339609 // Niko Tsakiris
 ];
 
 export const usmntCuspIds = [
@@ -63,10 +64,6 @@ export const usmntCuspIds = [
 export const usmntDualIds = [
   1641063, // Noahkai Banks
   1368318, // Luca Koleosho
-  1160089, // Luka Romero
-  1453474, // Daniel Bameyi
-  942980, // Richie Ledezma
   1257603, // Noel Buck
   1406105, // Fidel Barajas
-  1339609, // Niko Tsakiris
 ];
