@@ -4,9 +4,13 @@ const CF_WORKER_URL = 'https://usmnt-fotmob-proxy.winring86.workers.dev';
 
 function cmToFeetInches(cm) {
   if (!cm) return 'N/A';
-  const totalInches = cm / 2.54;
+  
+  // Round total inches first to avoid rounding up to 12 later
+  const totalInches = Math.round(cm / 2.54);
+  
   const feet = Math.floor(totalInches / 12);
-  const inches = Math.round(totalInches % 12);
+  const inches = totalInches % 12; // Will now strictly stay between 0 and 11
+  
   return `${feet}'${inches}"`;
 }
 
