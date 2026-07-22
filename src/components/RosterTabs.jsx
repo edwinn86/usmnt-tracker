@@ -41,8 +41,8 @@ function RosterTabs() {
         </nav>
       </header>
 
-      {/* Grid Display */}
-      <PlayerCardGrid playerIds={activeIds} />
+      {/* Grid Display - Added key prop to force a fresh mount on tab change */}
+      <PlayerCardGrid key={activeTab} playerIds={activeIds} />
     </div>
   );
 }
