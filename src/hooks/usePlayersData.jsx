@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const isProd = import.meta.env.PROD;
+const CF_WORKER_URL = 'https://usmnt-fotmob-proxy.winring86.workers.dev';
 
 function cmToFeetInches(cm) {
   if (!cm) return 'N/A';
@@ -10,14 +10,13 @@ function cmToFeetInches(cm) {
   return `${feet}'${inches}"`;
 }
 
-// 1. ADDED BACK: Currency formatting helper
 function formatCurrencyUSD(eurAmount, exchangeRate = 1.14) {
   if (!eurAmount || isNaN(eurAmount)) return 'N/A';
   
   const usdAmount = eurAmount * exchangeRate;
 
   if (usdAmount >= 100_000_000) {
-    return `$${Math.round(usdAmount / 1_000_000)}m`; // Yields $100m instead of $100.0m
+    return `$${Math.round(usdAmount / 1_000_000)}m`;
   }
 
   if (usdAmount >= 1_000_000) {
@@ -70,12 +69,11 @@ function extractPlayerStats(raw, exchangeRate) {
 
 async function fetchPlayer(playerId, exchangeRate) {
   const baseFotMobUrl = `https://www.fotmob.com/api/data/playerData?id=${playerId}`;
-  const fetchUrl = isProd
-    ? `https://corsproxy.io/?url=${encodeURIComponent(baseFotMobUrl)}`
-    : `/api-fotmob/api/data/playerData?id=${playerId}`;
+  const fetchUrl = `${CF_WORKER_URL}/?url=${encodeURIComponent(baseFotMobUrl)}`;
 
   const response = await fetch(fetchUrl);
   if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  
   const raw = await response.json();
   return extractPlayerStats(raw, exchangeRate);
 }
@@ -98,22 +96,27 @@ function usePlayersData(playerIds) {
       setLoading(true);
       setError(null);
 
-      const exchangeRate = await fetchExchangeRate(); 
+      try {
+        const exchangeRate = await fetchExchangeRate(); 
 
-      const results = await Promise.allSettled(
-        playerIds.map((id) => fetchPlayer(id, exchangeRate))
-      );
+        const results = await Promise.allSettled(
+          playerIds.map((id) => fetchPlayer(id, exchangeRate))
+        );
 
-      const successful = results
-        .filter((r) => r.status === 'fulfilled')
-        .map((r) => r.value);
+        const successful = results
+          .filter((r) => r.status === 'fulfilled')
+          .map((r) => r.value);
 
-      successful.sort((a, b) => b.marketValueRaw - a.marketValueRaw);
+        successful.sort((a, b) => b.marketValueRaw - a.marketValueRaw);
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      setPlayers(successful);
-      setLoading(false);
+        setPlayers(successful);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
 
     fetchAll();
