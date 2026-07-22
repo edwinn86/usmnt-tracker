@@ -24,7 +24,7 @@ function RosterTabs() {
       <header className="app-header">
         <div className="brand">
           <h1>USMNT TRACKER</h1>
-          <span className="subtitle">July 2026</span>
+          <span className="subtitle">July 2026 FOTMOB Data</span>
         </div>
 
         <nav className="tab-bar">
