@@ -19,6 +19,7 @@ export const usmntPlayerIds = [
   924485, // Mark McKenzie
   688271, // Auston Trusty
   198444, // Tim Ream
+  1173678 //Johnny Cardoso
 ];
 
 export const usmntProspectIds = [
@@ -29,10 +30,8 @@ export const usmntProspectIds = [
   1439804, // Nimfasha Berchimas
   1529648, // Diego Kochen
   1387850, // Cruz Medina
-  1448043, // Keyrol Figueroa
   1288195, // Cole Campbell
   1354177, // Benjamin Cremaschi
-  1346860, // Esmir Bajraktarevic
   1517896, // Neil Pierre
   1252908, // Josh Wydner
   1171825, // Jalen Neal
@@ -40,7 +39,18 @@ export const usmntProspectIds = [
   1448104, // Ethan Kohler
   1715268, // Adri Mehmeti
   1489675, //Julian Hall
-  1339609 // Niko Tsakiris
+  1339609, // Niko Tsakiris
+  1692797, //Mathis Albert
+  1258251, //Noah Cobb
+  1303876, //Brooklyn Raines
+  1482266, //Taha Habroune
+  1610216, //Adam Beaudry
+  1473789, //Peyton Miller
+  1190765, //Reed Baker-Whiting
+  1377897, //Roskas Pukstas
+  1617160, //Luca Bombino
+  1341120, //Duran Ferree
+  1368139 //Tate Johnson
 ];
 
 export const usmntCuspIds = [
@@ -48,7 +58,6 @@ export const usmntCuspIds = [
   1137272, // Yunus Musah
   1171008, // Paxten Aaronson
   924431, // Gianluca Busio
-  1170238, // Brian Gutiérrez
   1171013, // Jack McGlynn
   1083292, // Patrick Schulte
   1439982, // Duncan McGuire
@@ -59,6 +68,20 @@ export const usmntCuspIds = [
   1285885, // Jackson Ragen
   621946, // Christian Roldan
   848268, // Haji Wright
+  1026065, //Matt Freese
+  1245998, //Chris Brady
+  621882, //Alex Zendejas
+  643589, //Cameron Carter-Vickers
+  1136097, //Aidan Morris
+  688296, //Brandon Vazquez
+  848011, //Josh Sargent
+  825608, //Jesus Ferreira
+  1235086, //Kristoffer Lund
+  924446, //Bryan Reynolds
+  1025942, //Cade Cowell
+  1136099, //Kevin Paredes
+  780418, //Luca de la Torre
+  1363536 //Damion Downs
 ];
 
 export const usmntDualIds = [
@@ -66,4 +89,10 @@ export const usmntDualIds = [
   1368318, // Luca Koleosho
   1257603, // Noel Buck
   1406105, // Fidel Barajas
+  1692797, //Mathis Albert
+  1339595, //Christian McFarlane
+  1553208, //Da'vian Kimbrough
+  134756 //Matai Akinmboni
 ];
+
+//Dino Klapija
