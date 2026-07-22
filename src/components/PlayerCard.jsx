@@ -34,8 +34,8 @@ function PlayerCard({
           <span className="stat-value">{matchesPlayed}</span>
         </div>
         <div className="stat">
-          <span className="stat-label">G/A</span>
-          <span className="stat-value">{goals} / {assists}</span>
+          <span className="stat-label">G | A</span>
+          <span className="stat-value">{goals} | {assists}</span>
         </div>
       </div>
     </div>

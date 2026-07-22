@@ -1,0 +1,343 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Oswald:wght@600;700&display=swap');
+
+/* ==========================================
+   GLOBAL RESET & BASE LAYOUT
+   ========================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, 
+body, 
+#root, 
+#app, 
+main {
+  background-color: #060a12 !important;
+  color: #f8fafc;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================
+   INTEGRATED HEADER (Title Left, Tabs Right)
+   ========================================== */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.brand .subtitle {
+  font-size: 0.725rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ==========================================
+   TAB NAVIGATION WITH BADGES
+   ========================================== */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+}
+
+.tab-button:hover {
+  border-color: #2563eb;
+  color: #ffffff;
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  border-color: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+}
+
+/* Count Badge inside Tabs */
+.tab-button .badge {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-family: 'Inter', sans-serif;
+  color: #cbd5e1;
+}
+
+.tab-button.active .badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* ==========================================
+   PLAYER GRID
+   ========================================== */
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+  padding: 32px 24px 60px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ==========================================
+   PLAYER CARD CONTAINER
+   ========================================== */
+.player-card {
+  background: linear-gradient(165deg, #0d1838 0%, #070d1e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+}
+
+.player-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(37, 99, 235, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.player-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #dc2626 0%, #ffffff 50%, #2563eb 100%);
+  z-index: 2;
+}
+
+/* ==========================================
+   PLAYER CARD PHOTO & DETAILS
+   ========================================== */
+.player-photo {
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-top: 28px;
+  margin-bottom: 12px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+  background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+}
+
+.player-card h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 12px 16px 2px 16px;
+  color: #ffffff;
+}
+
+.player-card .position {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #93c5fd;
+  letter-spacing: 1.5px;
+  margin: 2px 16px 2px 16px;
+}
+
+.player-card .league {
+  font-size: 0.725rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #60a5fa;
+  letter-spacing: 0.5px;
+  margin: 0 16px 2px 16px;
+}
+
+.player-card .team {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0 16px 12px 16px;
+}
+
+.vitals {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.vitals .divider {
+  color: #475569;
+}
+
+/* ==========================================
+   STAT GRID (Tight Padding & Spacing Fix)
+   ========================================== */
+.stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background-color: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: auto;
+}
+
+.stat {
+  padding: 12px 2px; /* Decreased horizontal padding so 4 columns fit cleanly */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 0px; /* Reduced letter spacing so G/A fits comfortably */
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.stat:nth-child(2) .stat-value {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+}
+
+/* ==========================================
+   ENHANCED LOADING STATE
+   ========================================== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  min-height: 400px;
+  width: 100%;
+}
+
+/* Glowing Patriotic Spinner Ring */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: #2563eb;
+  border-top-color: #dc2626;
+  border-radius: 50%;
+  animation: spin 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+  margin-bottom: 18px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Loading Typography */
+.loading-text {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Animated Bouncing Dots */
+.loading-text .dot {
+  display: inline-block;
+  color: #3b82f6;
+  font-size: 1.4rem;
+  font-weight: bold;
+  animation: wave 1.4s infinite ease-in-out both;
+}
+
+.loading-text .dot-1 { animation-delay: 0s; }
+.loading-text .dot-2 { animation-delay: 0.2s; }
+.loading-text .dot-3 { animation-delay: 0.4s; }
+
+@keyframes wave {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-5px);
+    opacity: 1;
+    color: #60a5fa;
+  }
+}

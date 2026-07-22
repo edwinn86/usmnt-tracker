@@ -9,8 +9,8 @@ import {
 
 const TABS = [
   { key: 'firstTeam', label: 'First Team', ids: usmntPlayerIds },
-  { key: 'prospects', label: 'Prospects', ids: usmntProspectIds },
   { key: 'cusp', label: 'On the Cusp', ids: usmntCuspIds },
+  { key: 'prospects', label: 'Prospects', ids: usmntProspectIds },
   { key: 'dual', label: 'Dual Nats', ids: usmntDualIds },
 ];
 
@@ -20,17 +20,28 @@ function RosterTabs() {
 
   return (
     <div>
-      <div className="tab-bar">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            className={`tab-button ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Integrated App Header */}
+      <header className="app-header">
+        <div className="brand">
+          <h1>USMNT TRACKER</h1>
+          <span className="subtitle">July 2026</span>
+        </div>
+
+        <nav className="tab-bar">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              className={`tab-button ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+              <span className="badge">{tab.ids.length}</span>
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      {/* Grid Display */}
       <PlayerCardGrid playerIds={activeIds} />
     </div>
   );

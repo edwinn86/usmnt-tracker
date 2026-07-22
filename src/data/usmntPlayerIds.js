@@ -13,7 +13,6 @@ export const usmntPlayerIds = [
   959696, // Joe Scally
   952322, // Brenden Aaronson
   1126058, // Malik Tillman
-  825623, // Miles Robinson
   1036401, // Ricardo Pepi
   1338696, // Alex Freeman
   924485, // Mark McKenzie
@@ -81,7 +80,8 @@ export const usmntCuspIds = [
   1025942, //Cade Cowell
   1136099, //Kevin Paredes
   780418, //Luca de la Torre
-  1363536 //Damion Downs
+  1363536, //Damion Downs
+  825623 // Miles Robinson
 ];
 
 export const usmntDualIds = [
@@ -92,7 +92,7 @@ export const usmntDualIds = [
   1692797, //Mathis Albert
   1339595, //Christian McFarlane
   1553208, //Da'vian Kimbrough
-  134756 //Matai Akinmboni
+  1347568 //Matai Akinmboni
 ];
 
 //Dino Klapija

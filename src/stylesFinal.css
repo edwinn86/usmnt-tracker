@@ -1,0 +1,490 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap');
+
+/* ==========================================
+   1. GLOBAL RESET & BASE LAYOUT
+   ========================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, 
+body, 
+#root, 
+#app, 
+main {
+  background-color: #060a12 !important;
+  color: #f8fafc;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================
+   2. INTEGRATED HEADER (Title + Tabs)
+   ========================================== */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 24px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brand h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  margin: 0;
+  color: #ffffff;
+  line-height: 0.9;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.brand .subtitle {
+  font-size: 0.725rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* ==========================================
+   3. TAB NAVIGATION & BADGES
+   ========================================== */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+}
+
+.tab-button:hover {
+  border-color: #2563eb;
+  color: #ffffff;
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  border-color: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+}
+
+.tab-button .badge {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.tab-button.active .badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+/* ==========================================
+   4. PLAYER GRID
+   ========================================== */
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+  padding: 32px 24px 60px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ==========================================
+   5. PLAYER CARDS
+   ========================================== */
+.player-card {
+  background: linear-gradient(165deg, #0d1838 0%, #070d1e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+}
+
+.player-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(37, 99, 235, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Accent bar */
+.player-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #dc2626 0%, #ffffff 50%, #2563eb 100%);
+  z-index: 2;
+}
+
+/* Player Avatar */
+.player-photo {
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-top: 28px;
+  margin-bottom: 12px;
+  background: radial-gradient(circle, #1e293b 0%, #0b1329 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    -4px 0 12px rgba(37, 99, 235, 0.35),
+     4px 0 12px rgba(220, 38, 38, 0.35);
+}
+
+/* Card Typography */
+.player-card h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 10px 8px 2px 8px;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-card .position {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #93c5fd;
+  letter-spacing: 1.5px;
+  margin: 4px 16px 2px 16px;
+}
+
+.player-card .team {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0 16px 12px 16px;
+}
+
+.vitals {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 18px;
+}
+
+.vitals .divider {
+  color: #475569;
+}
+
+/* ==========================================
+   6. STAT GRID & RATING BADGE
+   ========================================== */
+.stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.15fr 0.925fr 0.925fr 0.95fr;
+  background-color: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: auto;
+}
+
+.stat {
+  padding: 14px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.stat:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 0px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px; 
+}
+
+.stat:nth-child(2) .stat-value {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  min-height: auto;
+  margin-top: -1px;
+}
+
+/* ==========================================
+   7. ANIMATED LOADER
+   ========================================== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  min-height: 400px;
+  width: 100%;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: #2563eb;
+  border-top-color: #dc2626;
+  border-radius: 50%;
+  animation: spin 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+  margin-bottom: 18px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline; 
+}
+
+.loading-text .dot {
+  display: inline-block;
+  color: #3b82f6;
+  font-size: 1.2rem;
+  font-weight: bold;
+  animation: wave 1.4s infinite ease-in-out both;
+}
+
+.loading-text .dot-1 { animation-delay: 0s; }
+.loading-text .dot-2 { animation-delay: 0.2s; }
+.loading-text .dot-3 { animation-delay: 0.4s; }
+
+@keyframes wave {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-5px);
+    opacity: 1;
+    color: #60a5fa;
+  }
+}
+
+.status-message {
+  text-align: center;
+  padding: 60px 24px;
+  color: #64748b;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 1px;
+}
+
+/* ==========================================
+   8. MEDIA QUERIES (TABLET & MOBILE)
+   ========================================== */
+
+/* Tablet (Under 1024px) */
+@media (max-width: 1024px) {
+  .player-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px;
+    padding: 20px 16px;
+  }
+
+  .app-header {
+    padding: 20px 16px 16px;
+  }
+}
+
+/* Mobile (Under 640px) */
+@media (max-width: 640px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 16px 12px;
+  }
+
+  .brand h1 {
+    font-size: 1.85rem;
+    letter-spacing: 2px;
+  }
+
+  .brand .subtitle {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+  }
+
+  /* Scrollable Tab Navigation */
+  .tab-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    gap: 8px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-button {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+
+  /* Horizontal Snap Carousel Container */
+  .player-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 16px 28px !important;
+    gap: 14px !important;
+    scrollbar-width: none;
+  }
+
+  .player-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Card Sizing & Vertical Distribution */
+  .player-card {
+    flex: 0 0 86% !important;
+    max-width: none !important;
+    scroll-snap-align: center;
+    margin: 0 !important;
+    min-height: clamp(480px, 60vh, 560px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+  }
+
+  /* 1. Scale and position the headshot */
+  .player-photo {
+    width: 135px !important;
+    height: 135px !important;
+    margin-top: 36px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* 2. Scale typography for tall card presentation */
+  .player-card h2 {
+    font-size: 1.6rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  .player-card .position {
+    font-size: 0.85rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .player-card .team {
+    font-size: 0.9rem !important;
+  }
+
+  /* 3. The Magic Bullet: Auto-margins expand vitals to fill empty dark space */
+  .vitals {
+    font-size: 0.9rem !important;
+    margin-top: 16px !important;
+    margin-bottom: auto !important; /* Pushes everything below it down to the stats footer */
+  }
+
+  /* 4. Stat Grid anchors cleanly at the bottom */
+  .stats {
+    margin-top: auto !important;
+    padding: 4px 0 !important;
+  }
+
+  .stat-value {
+    font-size: 1.05rem !important;
+  }
+}

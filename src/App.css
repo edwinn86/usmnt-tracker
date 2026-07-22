@@ -1,12 +1,36 @@
 /* ==========================================
    BASE
    ========================================== */
+
+html, 
+body {
+  background-color: #0b111e !important;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+
+#root, 
+#app, 
+main, 
+.App,
+.container {
+  background-color: #0b111e !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  min-height: 100vh;
+}
+
 body {
   background-color: #0b111e;
   color: #ffffff;
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+
 
 h1 {
   text-align: center;
