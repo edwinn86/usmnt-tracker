@@ -152,7 +152,8 @@ main {
   color: #ffffff;
 }
 
-.player-card:hover {
+.player-card:hover,
+.player-card.is-active {
   transform: translateY(-8px);
   box-shadow: 0 22px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(37, 99, 235, 0.3);
   border-color: rgba(59, 130, 246, 0.5);

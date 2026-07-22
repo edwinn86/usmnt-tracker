@@ -1,9 +1,40 @@
+import { useState, useEffect, useRef } from 'react';
+
 function PlayerCard({
   name, photoUrl, teamName, position, age, height,
   marketValue, leagueName, rating, matchesPlayed, goals, assists
 }) {
+  const cardRef = useRef(null);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When the card hits the exact center of the screen, make it active
+        setIsActive(entry.isIntersecting);
+      },
+      {
+        root: null,
+        // Shrinks the detection area to a narrow vertical line in the center of the screen
+        rootMargin: '0px -50% 0px -50%',
+        threshold: 0,
+      }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      if (cardRef.current) observer.unobserve(cardRef.current);
+    };
+  }, []);
+
   return (
-    <div className="player-card">
+    <div 
+      ref={cardRef} 
+      className={`player-card ${isActive ? 'is-active' : ''}`}
+    >
       <img src={photoUrl} alt={name} className="player-photo" />
       <h2>{name}</h2>
       <p className="position">{position}</p>
