@@ -1118,7 +1118,7 @@ main {
   .card-front .vitals {
     gap: clamp(10px, 2.8vw, 12px);
     margin-top: clamp(18px, 4.8vw, 21px) !important;
-    transform: none;
+    transform: translateY(-3px);
   }
 
   .card-front .vital {
@@ -1154,6 +1154,23 @@ main {
     min-height: 36px;
     padding: 3px 4px;
     line-height: 1;
+  }
+}
+
+/* Keep SE-class screens comfortably inside the usable mobile viewport. */
+@media (max-width: 390px) and (max-height: 700px) {
+  .app-header {
+    gap: 10px;
+    padding: 13px 16px 9px;
+  }
+
+  .player-grid {
+    padding-top: 10px !important;
+    padding-bottom: 18px !important;
+  }
+
+  .card-front .vitals {
+    transform: translateY(-4px);
   }
 }
 
