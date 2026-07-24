@@ -857,7 +857,8 @@ main {
 
   .mobile-swipe-hint {
     position: fixed;
-    bottom: calc(18px + env(safe-area-inset-bottom));
+    top: calc(clamp(148px, 20svh, 180px) + env(safe-area-inset-top));
+    bottom: auto;
     left: 50%;
     z-index: 20;
     display: inline-flex;
