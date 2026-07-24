@@ -294,6 +294,8 @@ main {
   width: 130px;
   height: 130px;
   object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
   border-radius: 50%;
   margin-top: 28px;
   margin-bottom: 12px;
@@ -453,6 +455,7 @@ main {
   letter-spacing: normal;
   min-height: auto;
   margin-top: -1px;
+  transform: translateY(-2px);
 }
 
 .rating-t1 {
@@ -839,8 +842,9 @@ main {
     overflow-x: auto !important;
     overflow-y: hidden !important;
     scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
     padding: 16px 5vw 28px !important;
     gap: 4vw !important;
     scroll-padding-inline: 5vw;
@@ -893,6 +897,9 @@ main {
     width: 90vw;
     min-width: 0;
     scroll-snap-align: center;
+    scroll-snap-stop: normal;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   /* Card Sizing & Vertical Distribution */
@@ -907,49 +914,57 @@ main {
     justify-content: flex-start !important;
   }
 
-  /* 1. Scale and position the headshot */
   .player-photo {
-    width: 135px !important;
-    height: 135px !important;
-    margin-top: 36px !important;
-    margin-bottom: 16px !important;
+    width: 145px !important;
+    height: 145px !important;
+    margin-top: 32px !important;
+    margin-bottom: 14px !important;
   }
 
-  /* 2. Scale typography for tall card presentation */
   .player-card h2 {
     font-size: 1.6rem !important;
     margin-bottom: 8px !important;
   }
 
   .player-card .position {
-    font-size: 0.67rem !important;
+    font-size: 0.7rem !important;
     margin: 16px 28px 10px !important;
     padding: 0;
   }
 
   .player-card .league {
-    font-size: 0.84rem !important;
-  }
-
-  .player-card .team {
     font-size: 0.9rem !important;
   }
 
-  /* 3. Auto-margins expand vitals to fill empty dark space */
+  .player-card .team {
+    font-size: 0.97rem !important;
+  }
+
   .vitals {
     font-size: 0.9rem !important;
     margin-top: 16px !important;
     margin-bottom: auto !important;
   }
 
-  /* 4. Stat Grid anchors cleanly at the bottom */
+  .vital-label {
+    font-size: 0.65rem;
+  }
+
+  .vital-value {
+    font-size: 0.92rem;
+  }
+
   .stats {
     margin-top: auto !important;
     padding: 4px 0 !important;
   }
 
   .stat-value {
-    font-size: 1.05rem !important;
+    font-size: 1.07rem !important;
+  }
+
+  .stat-label {
+    font-size: 0.68rem;
   }
 }
 
@@ -1042,7 +1057,7 @@ main {
   }
 
   .card-front .vital-label {
-    font-size: 0.64rem;
+    font-size: 0.65rem;
   }
 
   .card-front .vital-value {
@@ -1059,13 +1074,87 @@ main {
   }
 
   .card-front .stat-label {
-    font-size: 0.64rem;
+    font-size: 0.68rem;
   }
 
   .card-front .stat-value {
     font-size: 1.12rem !important;
   }
+}
 
+/* Scale the mobile front card with its 90vw carousel width. */
+@media (max-width: 640px) {
+  .card-front.player-card {
+    min-height: clamp(516px, 138vw, 594px) !important;
+  }
+
+  .card-front .player-photo {
+    width: clamp(153px, 40.8vw, 176px) !important;
+    height: clamp(153px, 40.8vw, 176px) !important;
+    margin-top: clamp(33px, 8.8vw, 38px) !important;
+    margin-bottom: clamp(14px, 3.8vw, 16px) !important;
+  }
+
+  .card-front h2 {
+    font-size: clamp(1.78rem, 7.62vw, 2.05rem) !important;
+    margin-top: clamp(14px, 3.75vw, 16px) !important;
+    margin-bottom: clamp(8px, 2.1vw, 9px) !important;
+  }
+
+  .card-front .league {
+    font-size: clamp(1.04rem, 4.52vw, 1.21rem) !important;
+  }
+
+  .card-front .team {
+    font-size: clamp(1.13rem, 4.86vw, 1.3rem) !important;
+  }
+
+  .card-front .position {
+    font-size: clamp(0.81rem, 3.5vw, 0.94rem) !important;
+    margin-top: clamp(19px, 5.05vw, 22px) !important;
+    margin-bottom: clamp(12px, 3.2vw, 14px) !important;
+  }
+
+  .card-front .vitals {
+    gap: clamp(10px, 2.8vw, 12px);
+    margin-top: clamp(18px, 4.8vw, 21px) !important;
+    transform: none;
+  }
+
+  .card-front .vital {
+    gap: clamp(5px, 1.4vw, 6px);
+  }
+
+  .card-front .vital-label {
+    font-size: clamp(0.76rem, 3.28vw, 0.88rem);
+  }
+
+  .card-front .vital-value {
+    font-size: clamp(1.07rem, 4.63vw, 1.24rem);
+  }
+
+  .card-front .stats {
+    padding: clamp(5px, 1.4vw, 6px) 0 !important;
+  }
+
+  .card-front .stat {
+    padding: clamp(17px, 4.55vw, 20px) 2px;
+  }
+
+  .card-front .stat-label {
+    font-size: clamp(0.78rem, 3.4vw, 0.91rem);
+  }
+
+  .card-front .stat-value {
+    font-size: clamp(1.24rem, 5.36vw, 1.44rem) !important;
+  }
+
+  .card-front .stat-rating {
+    width: 58px;
+    min-height: 36px;
+    padding: 3px 4px;
+    line-height: 1;
+  }
 }
 
 @keyframes mobile-filter-sheet-in {
@@ -1395,7 +1484,8 @@ main {
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-x: auto;
+  overscroll-behavior-y: contain;
   padding: 0 3px 8px 0;
   scrollbar-width: thin;
   scrollbar-color: rgba(71, 105, 161, 0.7) transparent;
@@ -1675,7 +1765,7 @@ main {
   .advanced-metrics-list {
     padding-bottom: 6px;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
+    touch-action: pan-x pan-y;
   }
 
   .flip-hint {

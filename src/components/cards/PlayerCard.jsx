@@ -75,6 +75,7 @@ function PlayerCard({
   availableSeasons = []
 }) {
   const cardRef = useRef(null);
+  const gestureRef = useRef({ startX: 0, startY: 0, moved: false });
   const [isActive, setIsActive] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -156,6 +157,29 @@ function PlayerCard({
     setCompetitionLoading(Boolean(nextCompetition?.hasDeepStats));
   };
 
+  const handlePointerDown = (event) => {
+    gestureRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+  };
+
+  const handlePointerMove = (event) => {
+    const gesture = gestureRef.current;
+    if (
+      Math.abs(event.clientX - gesture.startX) > 10 ||
+      Math.abs(event.clientY - gesture.startY) > 10
+    ) {
+      gesture.moved = true;
+    }
+  };
+
+  const handleFlip = (nextState) => {
+    if (gestureRef.current.moved) return;
+    setIsFlipped(nextState);
+  };
+
   const getAdvancedMetricsConfig = () => {
     switch (posGroup) {
       case 'ATT':
@@ -206,11 +230,14 @@ function PlayerCard({
     <div 
       ref={cardRef} 
       className={`flip-container ${isActive ? 'is-active' : ''}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerCancel={() => { gestureRef.current.moved = true; }}
     >
       <div className={`flip-inner ${isFlipped ? 'is-flipped' : ''}`}>
         <div 
           className="card-face card-front player-card" 
-          onClick={() => setIsFlipped(true)}
+          onClick={() => handleFlip(true)}
         >
           <img src={photoUrl} alt={name} className="player-photo" />
           <h2>{name}</h2>
@@ -254,7 +281,7 @@ function PlayerCard({
 
         <div 
           className="card-face card-back" 
-          onClick={() => setIsFlipped(false)}
+          onClick={() => handleFlip(false)}
         >
           <div className="card-back-header">
             <h3 className="back-player-name">{name}</h3>
