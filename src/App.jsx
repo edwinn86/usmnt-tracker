@@ -1,5 +1,5 @@
-import './stylesFinal.css';
-import RosterTabs from './components/RosterTabs';
+import './styles/app.css';
+import RosterTabs from './components/roster/RosterTabs';
 
 function App() {
   return (

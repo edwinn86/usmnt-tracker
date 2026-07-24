@@ -5,7 +5,7 @@ import {
   usmntProspectIds,
   usmntCuspIds,
   usmntDualIds,
-} from '../data/usmntPlayerIds';
+} from '../../data/usmntPlayerIds';
 
 const TABS = [
   { key: 'firstTeam', label: 'First Team', ids: usmntPlayerIds },
@@ -20,7 +20,6 @@ function RosterTabs() {
 
   return (
     <div>
-      {/* Integrated App Header */}
       <header className="app-header">
         <div className="brand">
           <h1>USMNT TRACKER</h1>
@@ -41,7 +40,7 @@ function RosterTabs() {
         </nav>
       </header>
 
-      {/* Grid Display - Added key prop to force a fresh mount on tab change */}
+      {/* Remounting clears controls when the roster changes. */}
       <PlayerCardGrid key={activeTab} playerIds={activeIds} />
     </div>
   );

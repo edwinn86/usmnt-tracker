@@ -12,7 +12,6 @@
     "deploy": "gh-pages -d dist -r https://github.com/edwinn86/usmnt-tracker.git"
   },
   "dependencies": {
-    "@max-xoo/fotmob": "^2.5.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

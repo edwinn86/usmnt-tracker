@@ -1,16 +1,41 @@
-# React + Vite
+# USMNT Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive React app for browsing USMNT players, comparing current-season advanced FotMob stats, and reviewing prior-season summaries.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+## Commands
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Vite development server. |
+| `npm run lint` | Run ESLint. |
+| `npm run build` | Create the production build in `dist/`. |
+| `npm run preview` | Preview the production build locally. |
+| `npm run deploy` | Build and publish the site to GitHub Pages. |
 
-## Expanding the ESLint configuration
+## Project structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```text
+src/
+  components/
+    cards/       Player-card presentation and flip behavior
+    roster/      Roster tabs, filtering, sorting, and card grid
+  data/          Curated FotMob player ID lists
+  hooks/         FotMob data loading and normalization
+  styles/        Application stylesheet
+scripts/          Development utilities
+fixtures/         Saved FotMob response for local inspection
+public/           Application images and icons
+```
+
+## Data
+
+The client requests FotMob data through the configured Cloudflare Worker proxy in `src/hooks/usePlayersData.js`. Player lists are deliberately curated in `src/data/usmntPlayerIds.js`.
+
+`scripts/generate-player-ids.mjs` is a developer utility for finding FotMob IDs from the USMNT squad page; review its output before replacing any curated lists.
