@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import PlayerCard from '../cards/PlayerCard';
+import PlayerTable from './PlayerTable';
+import MobileCompactList from './MobileCompactList';
 import usePlayersData from '../../hooks/usePlayersData';
 
 const SORT_OPTIONS = [
@@ -7,7 +9,10 @@ const SORT_OPTIONS = [
   { value: 'rating', label: 'Rating (high–low)' },
   { value: 'goals', label: 'Goals (high–low)' },
   { value: 'assists', label: 'Assists (high–low)' },
+  { value: 'matches', label: 'Matches (high-low)' },
   { value: 'age', label: 'Age (youngest)' },
+  { value: 'position', label: 'Position (A-Z)' },
+  { value: 'league', label: 'League (A-Z)' },
   { value: 'name', label: 'Name (A–Z)' },
 ];
 let hasShownSwipeHint = false;
@@ -25,14 +30,92 @@ function ratingColor(rating) {
   return '#f87171';
 }
 
+function defaultSortDirection(sortKey) {
+  return ['name', 'position', 'league', 'age'].includes(sortKey) ? 'asc' : 'desc';
+}
+
+function ViewToggle({ view, onChange }) {
+  const options = [
+    {
+      key: 'cards',
+      label: 'Cards',
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="4" width="6" height="7" rx="1" />
+          <rect x="14" y="4" width="6" height="7" rx="1" />
+          <rect x="4" y="14" width="6" height="6" rx="1" />
+          <rect x="14" y="14" width="6" height="6" rx="1" />
+        </svg>
+      ),
+    },
+    {
+      key: 'table',
+      label: 'Table',
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 6h13M7 12h13M7 18h13" />
+          <circle cx="4" cy="6" r="1" />
+          <circle cx="4" cy="12" r="1" />
+          <circle cx="4" cy="18" r="1" />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <div className="view-toggle" role="group" aria-label="Roster view">
+      {options.map((option) => (
+        <button
+          key={option.key}
+          type="button"
+          className={view === option.key ? 'active' : ''}
+          onClick={() => onChange(option.key)}
+          aria-pressed={view === option.key}
+        >
+          {option.icon}
+          <span>{option.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function PlayerCardGrid({ playerIds }) {
   const { players, loading, error } = usePlayersData(playerIds);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('value');
+  const [sortDirection, setSortDirection] = useState('desc');
   const [leagueFilter, setLeagueFilter] = useState('all');
   const [minimumRating, setMinimumRating] = useState(null);
+  const [view, setView] = useState(() => (
+    window.matchMedia('(max-width: 640px)').matches
+      && window.localStorage.getItem('usmnt-mobile-view') === 'compact'
+      ? 'compact'
+      : 'cards'
+  ));
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(() => !hasShownSwipeHint);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 640px)');
+    const adaptViewToViewport = (event) => {
+      setView((current) => {
+        if (event.matches && current === 'table') return 'compact';
+        if (!event.matches && current === 'compact') return 'cards';
+        return current;
+      });
+    };
+
+    adaptViewToViewport(mobileQuery);
+    mobileQuery.addEventListener('change', adaptViewToViewport);
+    return () => mobileQuery.removeEventListener('change', adaptViewToViewport);
+  }, []);
+
+  useEffect(() => {
+    if (view === 'cards' || view === 'compact') {
+      window.localStorage.setItem('usmnt-mobile-view', view);
+    }
+  }, [view]);
 
   useEffect(() => {
     if (!showSwipeHint) return undefined;
@@ -53,15 +136,21 @@ function PlayerCardGrid({ playerIds }) {
     return ratings.length ? Math.min(...ratings) : 0;
   }, [players]);
 
+  const highestRating = useMemo(() => {
+    const ratings = players.map((player) => numericValue(player.rating)).filter((rating) => rating > 0);
+    return ratings.length ? Math.max(...ratings) : 10;
+  }, [players]);
+
   const activeMinimumRating = minimumRating ?? lowestRating;
   const activeFilterCount = Number(Boolean(search.trim()))
-    + Number(sortBy !== 'value')
+    + Number(sortBy !== 'value' || sortDirection !== 'desc')
     + Number(leagueFilter !== 'all')
     + Number(minimumRating !== null);
 
   const clearFilters = () => {
     setSearch('');
     setSortBy('value');
+    setSortDirection('desc');
     setLeagueFilter('all');
     setMinimumRating(null);
   };
@@ -75,12 +164,15 @@ function PlayerCardGrid({ playerIds }) {
       return matchesName && matchesLeague && matchesRating;
     });
 
-    const direction = sortBy === 'age' || sortBy === 'name' ? 1 : -1;
+    const direction = sortDirection === 'asc' ? 1 : -1;
     return [...filtered].sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'name') return a.name.localeCompare(b.name) * direction;
+      if (sortBy === 'position') return a.position.localeCompare(b.position) * direction || a.name.localeCompare(b.name);
+      if (sortBy === 'league') return a.leagueName.localeCompare(b.leagueName) * direction || a.name.localeCompare(b.name);
       const sortValues = {
         rating: [numericValue(a.rating), numericValue(b.rating)],
         value: [a.marketValueAmount || 0, b.marketValueAmount || 0],
+        matches: [numericValue(a.matchesPlayed), numericValue(b.matchesPlayed)],
         goals: [numericValue(a.goals), numericValue(b.goals)],
         assists: [numericValue(a.assists), numericValue(b.assists)],
         age: [numericValue(a.age), numericValue(b.age)],
@@ -88,7 +180,20 @@ function PlayerCardGrid({ playerIds }) {
       const [aValue, bValue] = sortValues[sortBy] || [0, 0];
       return (aValue - bValue) * direction || a.name.localeCompare(b.name);
     });
-  }, [players, search, leagueFilter, minimumRating, activeMinimumRating, sortBy]);
+  }, [players, search, leagueFilter, minimumRating, activeMinimumRating, sortBy, sortDirection]);
+
+  const changeSort = (nextSort) => {
+    setSortBy(nextSort);
+    setSortDirection(defaultSortDirection(nextSort));
+  };
+
+  const toggleTableSort = (nextSort) => {
+    if (sortBy === nextSort) {
+      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
+    } else {
+      changeSort(nextSort);
+    }
+  };
 
   if (loading) {
     return (
@@ -121,7 +226,7 @@ function PlayerCardGrid({ playerIds }) {
 
         <label className="roster-select">
           <span>Sort by</span>
-          <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+          <select value={sortBy} onChange={(event) => changeSort(event.target.value)}>
             {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </label>
@@ -142,7 +247,7 @@ function PlayerCardGrid({ playerIds }) {
           <input
             type="range"
             min={lowestRating}
-            max="10"
+            max={highestRating}
             step="0.01"
             value={activeMinimumRating}
             onChange={(event) => setMinimumRating(Number(event.target.value))}
@@ -151,10 +256,49 @@ function PlayerCardGrid({ playerIds }) {
         </label>
 
         <span className="roster-count">{visiblePlayers.length} of {players.length}</span>
-        <span className="desktop-card-hint">Click a card for advanced stats</span>
+
+        <div className="roster-view-control">
+          <span>View</span>
+          <ViewToggle view={view} onChange={setView} />
+        </div>
+
+        <div className="roster-summary">
+          {view === 'cards' && (
+            <span className="desktop-card-hint">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="3.5" width="14" height="17" rx="3" />
+                <path d="M9 8h6M9 12h6" />
+              </svg>
+              Flip a card for advanced stats
+            </span>
+          )}
+        </div>
       </section>
 
       <div className="mobile-filter-bar">
+        <button
+          type="button"
+          className={`mobile-view-trigger ${view === 'compact' ? 'active' : ''}`}
+          onClick={() => setView((current) => current === 'compact' ? 'cards' : 'compact')}
+          aria-label={view === 'compact' ? 'Switch to card view' : 'Switch to compact view'}
+          title={view === 'compact' ? 'Card view' : 'Compact view'}
+        >
+          {view === 'compact' ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="4" width="6" height="7" rx="1" />
+              <rect x="14" y="4" width="6" height="7" rx="1" />
+              <rect x="4" y="14" width="6" height="6" rx="1" />
+              <rect x="14" y="14" width="6" height="6" rx="1" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 6h13M7 12h13M7 18h13" />
+              <circle cx="4" cy="6" r="1" />
+              <circle cx="4" cy="12" r="1" />
+              <circle cx="4" cy="18" r="1" />
+            </svg>
+          )}
+        </button>
         <button
           type="button"
           className="mobile-filter-trigger"
@@ -164,13 +308,13 @@ function PlayerCardGrid({ playerIds }) {
           <svg className="mobile-filter-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 7h16M7 12h10M10 17h4" />
           </svg>
-          <span>Filters</span>
+          <span className="mobile-filter-label">Filter</span>
           {activeFilterCount > 0 && <span className="mobile-filter-count">{activeFilterCount}</span>}
         </button>
         <span className="mobile-result-count">{visiblePlayers.length} players</span>
       </div>
 
-      <div className="player-carousel-shell">
+      {view === 'cards' ? <div className="player-carousel-shell">
         {showSwipeHint && <div className="mobile-swipe-hint" aria-hidden="true">
           <span>Swipe to browse · tap a card for stats</span>
           <span className="swipe-hint-arrow">→</span>
@@ -182,14 +326,30 @@ function PlayerCardGrid({ playerIds }) {
           {visiblePlayers.length === 0 && <p className="status-message">No players match those filters.</p>}
           {error && <p className="status-message error">{error}</p>}
         </div>
-      </div>
+      </div> : view === 'compact' ? (
+        <MobileCompactList
+          players={visiblePlayers}
+          error={error}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSort={toggleTableSort}
+        />
+      ) : (
+        <PlayerTable
+          players={visiblePlayers}
+          error={error}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSort={toggleTableSort}
+        />
+      )}
 
       {mobileFiltersOpen && (
-        <div className="mobile-filter-dialog" role="dialog" aria-modal="true" aria-label="Filter and sort players">
+        <div className="mobile-filter-dialog" role="dialog" aria-modal="true" aria-label="Filter players">
           <button type="button" className="mobile-filter-backdrop" aria-label="Close filters" onClick={() => setMobileFiltersOpen(false)} />
           <section className="mobile-filter-sheet">
             <div className="mobile-filter-sheet-header">
-              <h2>Filter &amp; sort</h2>
+              <h2>Filter</h2>
               <button type="button" className="mobile-filter-close" onClick={() => setMobileFiltersOpen(false)} aria-label="Close filters">×</button>
             </div>
 
@@ -201,7 +361,7 @@ function PlayerCardGrid({ playerIds }) {
             <div className="mobile-filter-pair">
               <label className="mobile-filter-field">
                 <span>Sort by</span>
-                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                <select value={sortBy} onChange={(event) => changeSort(event.target.value)}>
                   {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
@@ -216,7 +376,7 @@ function PlayerCardGrid({ playerIds }) {
 
             <label className="mobile-rating-filter">
               <span>Min. rating <strong style={{ color: ratingColor(activeMinimumRating) }}>{activeMinimumRating ? activeMinimumRating.toFixed(2) : 'Any'}</strong></span>
-              <input type="range" min={lowestRating} max="10" step="0.01" value={activeMinimumRating} onChange={(event) => setMinimumRating(Number(event.target.value))} style={{ '--rating-color': ratingColor(activeMinimumRating) }} />
+              <input type="range" min={lowestRating} max={highestRating} step="0.01" value={activeMinimumRating} onChange={(event) => setMinimumRating(Number(event.target.value))} style={{ '--rating-color': ratingColor(activeMinimumRating) }} />
             </label>
 
             <div className="mobile-filter-actions">

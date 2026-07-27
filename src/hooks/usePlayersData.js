@@ -72,18 +72,21 @@ function findStat(stats, ...keys) {
 function metricFromStat(stat, { per90 = true, suffix = '/90' } = {}) {
   if (!stat) return null;
 
-  const rawValue = per90 ? stat.per90 : stat.statValue;
-  const value = Number(rawValue);
-  if (!Number.isFinite(value)) return null;
+  const total = Number(stat.statValue);
+  const per90Value = Number(stat.per90);
+  const defaultValue = per90 ? per90Value : total;
+  if (!Number.isFinite(defaultValue)) return null;
 
-  const rawPercentile = per90
-    ? stat.percentileRankPer90 ?? stat.percentileRank
-    : stat.percentileRank;
-  const percentile = Number(rawPercentile);
+  const totalPercentile = Number(stat.percentileRank);
+  const per90Percentile = Number(stat.percentileRankPer90 ?? stat.percentileRank);
 
   return {
-    value,
-    percentile: Number.isFinite(percentile) ? Math.round(percentile) : null,
+    total: Number.isFinite(total) ? total : defaultValue,
+    per90: Number.isFinite(per90Value) ? per90Value : defaultValue,
+    totalPercentile: Number.isFinite(totalPercentile) ? Math.round(totalPercentile) : null,
+    per90Percentile: Number.isFinite(per90Percentile) ? Math.round(per90Percentile) : null,
+    isRate: !per90,
+    statFormat: stat.statFormat || (suffix === '%' ? 'percent' : 'number'),
     suffix,
   };
 }
@@ -101,8 +104,10 @@ export function parseAdvancedMetrics(firstSeasonStats) {
     xA: get(['expected_assists', 'xa']),
     shotsOnTarget: get(['ShotsOnTarget', 'shots_on_target', 'shots on target']),
     dribbles: get(['dribbles_succeeded', 'dribbles', 'successful dribbles']),
+    touchesOppBox: get(['touches_opp_box', 'touches in opposition box']),
     chancesCreated: get(['chances_created', 'key_passes', 'chances created']),
     passAccuracy: get(['successful_passes_accuracy', 'pass accuracy'], { per90: false, suffix: '%' }),
+    accurateLongBalls: get(['long_balls_accurate', 'accurate long balls']),
     tackles: get(['matchstats.headers.tackles', 'tackles']),
     recoveries: get(['recoveries']),
     aerialsWonPct: get(['aerials_won_percent', 'aerials won %'], { per90: false, suffix: '%' }),

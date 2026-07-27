@@ -7,11 +7,21 @@ import {
   usmntDualIds,
 } from '../../data/usmntPlayerIds';
 
+const fullPoolIds = [
+  ...new Set([
+    ...usmntPlayerIds,
+    ...usmntCuspIds,
+    ...usmntProspectIds,
+    ...usmntDualIds,
+  ]),
+];
+
 const TABS = [
   { key: 'firstTeam', label: 'First Team', ids: usmntPlayerIds },
   { key: 'cusp', label: 'On the Cusp', ids: usmntCuspIds },
   { key: 'prospects', label: 'Prospects', ids: usmntProspectIds },
   { key: 'dual', label: 'Dual Nats', ids: usmntDualIds },
+  { key: 'fullPool', label: 'Full Pool', ids: fullPoolIds },
 ];
 
 function RosterTabs() {

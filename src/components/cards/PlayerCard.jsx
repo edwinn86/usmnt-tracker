@@ -18,45 +18,68 @@ function getRatingColorClass(rating) {
   return 'rating-t5';                 
 }
 
-function getPositionGroup(pos = '') {
+function getPositionRole(pos = '') {
   const normalizedPos = pos.toUpperCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
 
   if (/\b(GK|GOALKEEPER|KEEPER)\b/.test(normalizedPos)) {
     return 'GK';
   }
 
-  // Check defenders first so wing-backs are not treated as wingers.
   if (
-    /\b(CB|LB|RB|WB|LWB|RWB|DF)\b/.test(normalizedPos) ||
-    /\b(LEFT|RIGHT|CENTRE|CENTER) BACK\b/.test(normalizedPos) ||
+    /\bCB\b/.test(normalizedPos) ||
+    /\b(CENTRE|CENTER) BACK\b/.test(normalizedPos) ||
+    /\bCENTRAL DEFENDER\b/.test(normalizedPos)
+  ) {
+    return 'CB';
+  }
+
+  if (
+    /\b(LB|RB|WB|LWB|RWB|DF)\b/.test(normalizedPos) ||
+    /\b(LEFT|RIGHT) BACK\b/.test(normalizedPos) ||
     /\bWING ?BACK\b/.test(normalizedPos) ||
     /\bFULL ?BACK\b/.test(normalizedPos) ||
     /\bDEFENDER\b/.test(normalizedPos)
   ) {
-    return 'DEF';
+    return 'FB';
   }
 
   if (
-    /\b(CAM|CM|CDM|LM|RM|MF)\b/.test(normalizedPos) ||
-    /\bMIDFIELDER\b/.test(normalizedPos) ||
-    /\b(HOLDING|CENTRAL|CENTER|ATTACKING|DEFENSIVE|WIDE) MID\b/.test(normalizedPos)
+    /\b(CAM|AM)\b/.test(normalizedPos) ||
+    /\bATTACKING MID(FIELDER)?\b/.test(normalizedPos)
   ) {
-    return 'MID';
+    return 'AM';
   }
 
-  return 'ATT';
+  if (
+    /\b(CM|CDM|DM|MF)\b/.test(normalizedPos) ||
+    /\b(CENTRAL|CENTER|DEFENSIVE|HOLDING) MID(FIELDER)?\b/.test(normalizedPos) ||
+    normalizedPos === 'MIDFIELDER'
+  ) {
+    return 'CM';
+  }
+
+  if (
+    /\b(LW|RW|LM|RM)\b/.test(normalizedPos) ||
+    /\b(LEFT|RIGHT|WIDE) (WINGER|MIDFIELDER)\b/.test(normalizedPos) ||
+    /\bWINGER\b/.test(normalizedPos)
+  ) {
+    return 'WINGER';
+  }
+
+  return 'ST';
 }
 
-function isCenterBack(pos = '') {
-  const normalized = pos.toUpperCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
-  return /\bCB\b/.test(normalized) || /\b(CENTRE|CENTER) BACK\b/.test(normalized);
-}
-
-function formatMetric(metric) {
+function formatMetric(metric, mode) {
   if (!metric) return 'N/A';
-  const precision = metric.suffix === '%' ? 1 : 2;
+  const value = metric.isRate || mode === 'totals' ? metric.total : metric.per90;
+  if (!Number.isFinite(value)) return 'N/A';
+  const precision = metric.suffix === '%'
+    ? 1
+    : mode === 'totals' && metric.statFormat === 'number'
+      ? 0
+      : 2;
   const unit = metric.suffix === '/90' ? '' : metric.suffix || '';
-  return `${metric.value.toFixed(precision)}${unit}`;
+  return `${value.toFixed(precision)}${unit}`;
 }
 
 function formatPercentile(percentile) {
@@ -72,12 +95,14 @@ function PlayerCard({
   marketValue, leagueName, rating, matchesPlayed, goals, assists,
   id, season,
   seasonEntries = [],
-  availableSeasons = []
+  availableSeasons = [],
+  initialFlipped = false,
+  lockFlippedSide = false
 }) {
   const cardRef = useRef(null);
   const gestureRef = useRef({ startX: 0, startY: 0, moved: false });
   const [isActive, setIsActive] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(initialFlipped);
 
   const initialSeason = season || availableSeasons[0] || '';
   const initialSeasonEntry = seasonEntries.find((entry) => entry.seasonName === initialSeason) || seasonEntries[0] || {};
@@ -88,6 +113,7 @@ function PlayerCard({
     Boolean(initialSeasonEntry.competitions?.find((competition) => competition.entryId === initialSeasonEntry.defaultCompetitionId)?.hasDeepStats)
   );
   const [competitionError, setCompetitionError] = useState(null);
+  const [metricMode, setMetricMode] = useState('totals');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -110,8 +136,8 @@ function PlayerCard({
   const activeStats = competitionStats
     ? { ...activeSeason, ...competitionStats, leagueName: activeCompetition?.name || activeSeason.leagueName }
     : activeSeason;
-  const posGroup = getPositionGroup(position);
-  const centerBack = isCenterBack(position);
+  const positionRole = getPositionRole(position);
+  const isGoalkeeper = positionRole === 'GK';
 
   const hasAdvancedStats = Boolean(activeStats.hasAdvancedStats);
 
@@ -181,44 +207,60 @@ function PlayerCard({
   };
 
   const getAdvancedMetricsConfig = () => {
-    switch (posGroup) {
-      case 'ATT':
+    switch (positionRole) {
+      case 'ST':
         return [
-          { label: 'npxG', key: 'npxG' },
-          { label: 'xGOT', key: 'xGOT' },
-          { label: 'xA', key: 'xA' },
+          { label: 'Non-penalty xG (npxG)', key: 'npxG' },
+          { label: 'Expected goals on target (xGOT)', key: 'xGOT' },
           { label: 'Shots on Target', key: 'shotsOnTarget' },
-          { label: 'Dribbles', key: 'dribbles' },
+          { label: 'Touches in Box', key: 'touchesOppBox' },
+          { label: 'Expected assists (xA)', key: 'xA' },
         ];
-      case 'MID':
+      case 'WINGER':
         return [
+          { label: 'Non-penalty xG (npxG)', key: 'npxG' },
+          { label: 'Expected assists (xA)', key: 'xA' },
+          { label: 'Chances Created', key: 'chancesCreated' },
+          { label: 'Successful Dribbles', key: 'dribbles' },
+          { label: 'Touches in Box', key: 'touchesOppBox' },
+        ];
+      case 'AM':
+        return [
+          { label: 'Expected assists (xA)', key: 'xA' },
+          { label: 'Chances Created', key: 'chancesCreated' },
+          { label: 'Non-penalty xG (npxG)', key: 'npxG' },
+          { label: 'Successful Dribbles', key: 'dribbles' },
+          { label: 'Recoveries', key: 'recoveries' },
+        ];
+      case 'CM':
+        return [
+          { label: 'Recoveries', key: 'recoveries' },
+          { label: 'Tackles', key: 'tackles' },
           { label: 'Pass Accuracy', key: 'passAccuracy' },
-          { label: 'xA', key: 'xA' },
-          { label: 'Chances', key: 'chancesCreated' },
+          { label: 'Accurate Long Balls', key: 'accurateLongBalls' },
+          { label: 'Chances Created', key: 'chancesCreated' },
+        ];
+      case 'FB':
+        return [
+          { label: 'Expected assists (xA)', key: 'xA' },
+          { label: 'Chances Created', key: 'chancesCreated' },
+          { label: 'Successful Crosses', key: 'successfulCrosses' },
           { label: 'Tackles', key: 'tackles' },
           { label: 'Recoveries', key: 'recoveries' },
         ];
-      case 'DEF':
-        return centerBack
-          ? [
-              { label: 'Pass Accuracy', key: 'passAccuracy' },
-              { label: 'Long Ball Acc.', key: 'longBallAccuracy' },
-              { label: 'Aerial Won %', key: 'aerialsWonPct' },
-              { label: 'Clearances', key: 'clearances' },
-              { label: 'Recoveries', key: 'recoveries' },
-            ]
-          : [
-              { label: 'xA', key: 'xA' },
-              { label: 'Succ. Crosses', key: 'successfulCrosses' },
-              { label: 'Cross Accuracy', key: 'crossAccuracy' },
-              { label: 'Chances', key: 'chancesCreated' },
-              { label: 'Tackles', key: 'tackles' },
-            ];
+      case 'CB':
+        return [
+          { label: 'Aerial Duel Win Rate', key: 'aerialsWonPct' },
+          { label: 'Clearances', key: 'clearances' },
+          { label: 'Recoveries', key: 'recoveries' },
+          { label: 'Pass Accuracy', key: 'passAccuracy' },
+          { label: 'Long Ball Accuracy', key: 'longBallAccuracy' },
+        ];
       case 'GK':
         return [
           { label: 'Goals Prevented', key: 'goalsPrevented' },
-          { label: 'Post-Shot xG / Shot', key: 'psxgPerShot' },
-          { label: 'Crosses Stopped %', key: 'crossesStoppedPct' },
+          { label: 'Post-shot xG per Shot', key: 'psxgPerShot' },
+          { label: 'Crosses Stopped Rate', key: 'crossesStoppedPct' },
           { label: 'Sweeper Actions', key: 'sweeperActions' },
         ];
       default:
@@ -263,25 +305,31 @@ function PlayerCard({
               <span className="stat-value">{marketValue}</span>
             </div>
             <div className="stat">
+              <span className="stat-label">Matches</span>
+              <span className="stat-value">{matchesPlayed}</span>
+            </div>
+            <div className="stat">
               <span className="stat-label">Rating</span>
               <span className={`stat-value stat-rating ${ratingClass}`}>
                 {displayRating}
               </span>
             </div>
-            <div className="stat">
-              <span className="stat-label">Matches</span>
-              <span className="stat-value">{matchesPlayed}</span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">G | A</span>
-              <span className="stat-value">{goals} | {assists}</span>
+            <div className="stat stat-output">
+              <div className="output-stat">
+                <span className="stat-label">G</span>
+                <span className="stat-value">{goals}</span>
+              </div>
+              <div className="output-stat">
+                <span className="stat-label">A</span>
+                <span className="stat-value">{assists}</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div 
           className="card-face card-back" 
-          onClick={() => handleFlip(false)}
+          onClick={() => { if (!lockFlippedSide) handleFlip(false); }}
         >
           <div className="card-back-header">
             <h3 className="back-player-name">{name}</h3>
@@ -319,13 +367,27 @@ function PlayerCard({
           </div>
 
           {competitionLoading ? (
-            <div className="competition-loading">Loading competition stats...</div>
+            <div className="competition-loading" role="status" aria-live="polite">
+              <div className="competition-loading-label">
+                <span className="competition-loading-spinner" aria-hidden="true" />
+                <span>Loading competition stats</span>
+              </div>
+              <div className="competition-loading-skeleton" aria-hidden="true">
+                {[0, 1, 2, 3].map((row) => (
+                  <div className="competition-skeleton-row" key={row}>
+                    <span />
+                    <strong />
+                    <i />
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : competitionError ? (
             <div className="competition-loading">Competition stats unavailable.</div>
           ) : hasAdvancedStats ? (
             <div className="advanced-stats-container">
               <div className="base-stats-banner">
-                {posGroup === 'GK' ? (
+                {isGoalkeeper ? (
                   <>
                     <div className="banner-item"><span>GP</span><strong>{activeStats.matches ?? 0}</strong></div>
                     <div className="banner-item"><span>MIN</span><strong>{activeStats.minutes ?? 0}</strong></div>
@@ -342,6 +404,28 @@ function PlayerCard({
                 )}
               </div>
 
+              <div className="metric-mode-bar" onClick={(event) => event.stopPropagation()}>
+                <span>Percentile rank</span>
+                <div className="metric-mode-toggle" role="group" aria-label="Advanced metric display">
+                  <button
+                    type="button"
+                    className={metricMode === 'totals' ? 'active' : ''}
+                    onClick={() => setMetricMode('totals')}
+                    aria-pressed={metricMode === 'totals'}
+                  >
+                    Totals
+                  </button>
+                  <button
+                    type="button"
+                    className={metricMode === 'per90' ? 'active' : ''}
+                    onClick={() => setMetricMode('per90')}
+                    aria-pressed={metricMode === 'per90'}
+                  >
+                    Per 90
+                  </button>
+                </div>
+              </div>
+
               <div className="advanced-metrics-list">
                 <div className="metrics-header-row">
                   <span>METRIC</span>
@@ -355,18 +439,19 @@ function PlayerCard({
                   const advancedMetric = activeStats.advancedMetrics[metric.key];
                   // FotMob can return 100 for the top-ranked player; present
                   // percentile ranks on the conventional 1–99 scale instead.
-                  const pct = advancedMetric.percentile == null
-                    ? advancedMetric.percentile
-                    : Math.min(99, advancedMetric.percentile);
+                  const rawPercentile = advancedMetric.isRate || metricMode === 'totals'
+                    ? advancedMetric.totalPercentile
+                    : advancedMetric.per90Percentile;
+                  const pct = rawPercentile == null ? rawPercentile : Math.min(99, rawPercentile);
                   const barWidth = pct == null ? 0 : (pct / 99) * 100;
-                  const formattedVal = formatMetric(advancedMetric);
+                  const formattedVal = formatMetric(advancedMetric, metricMode);
 
                   return (
                     <div key={metric.key} className="metric-row">
                       <span className="metric-label">{metric.label}</span>
                       <span className="metric-value">
                         {formattedVal}
-                        {advancedMetric.suffix === '/90' && <span className="mobile-per-90"> /90</span>}
+                        {!advancedMetric.isRate && metricMode === 'per90' && <span className="mobile-per-90"> /90</span>}
                       </span>
                       <div className="percentile-cell">
                         {pct !== undefined && pct !== null ? (
@@ -379,8 +464,8 @@ function PlayerCard({
                               }}
                             />
                             <span className="percentile-score">
-                              <span className="desktop-percentile-score">{formatPercentile(pct)} percentile</span>
-                              <span className="mobile-percentile-score">{formatPercentile(pct)} percentile</span>
+                              <span className="desktop-percentile-score">{formatPercentile(pct)}</span>
+                              <span className="mobile-percentile-score">{formatPercentile(pct)}</span>
                             </span>
                           </div>
                         ) : (
