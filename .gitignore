@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+*.pre-snapshot.backup
 
 # Editor directories and files
 .vscode/*

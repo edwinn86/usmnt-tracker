@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 
 const CF_WORKER_URL = 'https://usmnt-fotmob-proxy.winring86.workers.dev';
+const DATA_MODE = import.meta.env.VITE_DATA_MODE || 'live';
+const USE_SNAPSHOTS = DATA_MODE === 'snapshot';
+const SNAPSHOT_BASE = `${import.meta.env.BASE_URL}data`;
 
 // FotMob's career and current-season payloads use slightly different shapes.
 function parseRating(entry, mainLeagueStats = []) {
@@ -152,8 +155,15 @@ export function parseCompetitionStats(payload) {
 }
 
 export async function fetchCompetitionStats(playerId, entryId) {
-  const fotmobUrl = `https://www.fotmob.com/api/data/playerStats?playerId=${playerId}&seasonId=${entryId}&isFirstSeason=false`;
-  const response = await fetch(`${CF_WORKER_URL}/?url=${encodeURIComponent(fotmobUrl)}`);
+  const response = USE_SNAPSHOTS
+    ? await fetch(
+      `${SNAPSHOT_BASE}/competitions/${playerId}/${encodeURIComponent(String(entryId))}.json`
+    )
+    : await fetch(
+      `${CF_WORKER_URL}/?url=${encodeURIComponent(
+        `https://www.fotmob.com/api/data/playerStats?playerId=${playerId}&seasonId=${entryId}&isFirstSeason=false`
+      )}`
+    );
   if (!response.ok) throw new Error(`Failed fetching competition stats: ${response.status}`);
   return parseCompetitionStats(await response.json());
 }
@@ -261,6 +271,17 @@ function formatCurrencyUSD(eurAmount, exchangeRate = 1.14) {
 }
 
 async function fetchExchangeRate() {
+  if (USE_SNAPSHOTS) {
+    try {
+      const response = await fetch(`${SNAPSHOT_BASE}/manifest.json`);
+      if (!response.ok) throw new Error(`Snapshot manifest unavailable: ${response.status}`);
+      const manifest = await response.json();
+      return Number(manifest.exchangeRateEurToUsd) || 1.14;
+    } catch {
+      return 1.14;
+    }
+  }
+
   try {
     const response = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD');
     const data = await response.json();
@@ -287,11 +308,17 @@ export function usePlayersData(playerIds = []) {
         const exchangeRate = await fetchExchangeRate();
         const results = await Promise.all(
           playerIds.map(async (id) => {
-            const fotmobUrl = `https://www.fotmob.com/api/data/playerData?id=${id}`;
-            const res = await fetch(`${CF_WORKER_URL}/?url=${encodeURIComponent(fotmobUrl)}`);
+            const res = USE_SNAPSHOTS
+              ? await fetch(`${SNAPSHOT_BASE}/players/${id}.json`)
+              : await fetch(
+                `${CF_WORKER_URL}/?url=${encodeURIComponent(
+                  `https://www.fotmob.com/api/data/playerData?id=${id}`
+                )}`
+              );
             
             if (!res.ok) {
-              throw new Error(`Failed fetching data for player ID: ${id}`);
+              const source = USE_SNAPSHOTS ? 'snapshot' : 'FotMob';
+              throw new Error(`Failed fetching ${source} data for player ID: ${id}`);
             }
 
             const rawData = await res.json();
@@ -306,7 +333,9 @@ export function usePlayersData(playerIds = []) {
               name: rawData.name || rawData.playerInformation?.name || 'Unknown Player',
               position: rawData.positionDescription?.primaryPosition?.label || rawData.playerInformation?.position?.label || 'N/A',
               teamName: rawData.primaryTeam?.teamName || rawData.mainLeague?.teamName || 'N/A',
-              photoUrl: `https://images.fotmob.com/image_resources/playerimages/${id}.png`,
+              photoUrl: USE_SNAPSHOTS
+                ? `${SNAPSHOT_BASE}/player-images/${id}.png`
+                : `https://images.fotmob.com/image_resources/playerimages/${id}.png`,
               age: getInfo('Age')?.fallback ?? 'N/A',
               height: cmToFeetInches(getInfo('Height')?.numberValue),
               marketValue: formatCurrencyUSD(getInfo('Market value')?.numberValue, exchangeRate),

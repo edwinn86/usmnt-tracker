@@ -80,7 +80,7 @@ function ViewToggle({ view, onChange }) {
   );
 }
 
-function PlayerCardGrid({ playerIds }) {
+function PlayerCardGrid({ playerIds, onOpenAbout }) {
   const { players, loading, error } = usePlayersData(playerIds);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('value');
@@ -405,6 +405,20 @@ function PlayerCardGrid({ playerIds }) {
               <button type="button" className="mobile-filter-reset" onClick={clearFilters}>Reset</button>
               <button type="button" className="mobile-filter-apply" onClick={() => setMobileFiltersOpen(false)}>Show {visiblePlayers.length} players</button>
             </div>
+            <button
+              type="button"
+              className="mobile-about-trigger"
+              onClick={() => {
+                setMobileFiltersOpen(false);
+                onOpenAbout?.();
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 10.5v6M12 7.5h.01" />
+              </svg>
+              About this tracker
+            </button>
           </section>
         </div>
       )}

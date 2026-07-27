@@ -281,7 +281,14 @@ function PlayerCard({
           className="card-face card-front player-card" 
           onClick={() => handleFlip(true)}
         >
-          <img src={photoUrl} alt={name} className="player-photo" />
+          <img
+            src={photoUrl}
+            alt={name}
+            className="player-photo"
+            onError={(event) => {
+              event.currentTarget.style.visibility = 'hidden';
+            }}
+          />
           <h2>{name}</h2>
           <p className="league">{leagueName}</p>
           <p className="team">{teamName}</p>

@@ -55,7 +55,9 @@ function candidateScore(query, candidate) {
   const explicitNicknameMatch = FIRST_NAME_EQUIVALENTS.some(
     (names) => names.includes(wantedParts[0]) && names.includes(foundParts[0])
   );
-  const firstNamesMatch = explicitNicknameMatch || (wantedParts[0].length >= 3
+  const firstNamesMatch = explicitNicknameMatch
+    || editDistance(wantedParts[0], foundParts[0]) <= 2
+    || (wantedParts[0].length >= 3
     && (
       wantedParts[0].startsWith(foundParts[0])
       || foundParts[0].startsWith(wantedParts[0])
@@ -85,12 +87,18 @@ async function searchPlayers(query) {
 export async function resolvePlayer(query) {
   let searchResults = await searchPlayers(query);
   let usedSurnameFallback = false;
-  if (!searchResults.length) {
-    const surname = normalize(query).split(' ').at(-1);
-    if (surname && surname !== normalize(query)) {
-      searchResults = await searchPlayers(surname);
-      usedSurnameFallback = true;
-    }
+  const normalizedQuery = normalize(query);
+  const hasExactResult = searchResults.some(
+    (candidate) => normalize(candidate.name) === normalizedQuery
+  );
+  const surname = normalizedQuery.split(' ').at(-1);
+  if (!hasExactResult && surname && surname !== normalizedQuery) {
+    const surnameResults = await searchPlayers(surname);
+    const merged = new Map(
+      [...searchResults, ...surnameResults].map((candidate) => [String(candidate.id), candidate])
+    );
+    searchResults = [...merged.values()];
+    usedSurnameFallback = true;
   }
 
   const candidates = searchResults
