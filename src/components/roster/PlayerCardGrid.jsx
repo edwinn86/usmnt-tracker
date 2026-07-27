@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import PlayerCard from '../cards/PlayerCard';
 import PlayerTable from './PlayerTable';
 import MobileCompactList from './MobileCompactList';
@@ -93,26 +93,40 @@ function PlayerCardGrid({ playerIds }) {
       ? 'compact'
       : 'cards'
   ));
+  const portraitViewRef = useRef(view === 'compact' ? 'compact' : 'cards');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(() => !hasShownSwipeHint);
 
   useEffect(() => {
-    const mobileQuery = window.matchMedia('(max-width: 640px)');
-    const adaptViewToViewport = (event) => {
+    const mobileQuery = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px)');
+    const landscapePhoneQuery = window.matchMedia('(orientation: landscape) and (max-height: 500px) and (max-width: 950px)');
+    const adaptViewToViewport = () => {
       setView((current) => {
-        if (event.matches && current === 'table') return 'compact';
-        if (!event.matches && current === 'compact') return 'cards';
+        // CSS forces the landscape presentation. Preserve the user's actual
+        // view selection so rotating never creates an intermediate state.
+        if (landscapePhoneQuery.matches) return current;
+        if (mobileQuery.matches) {
+          const preferredMobileView = window.localStorage.getItem('usmnt-mobile-view');
+          if (current === 'table') return preferredMobileView === 'compact' ? 'compact' : 'cards';
+          if (current === 'compact' && preferredMobileView === 'cards') return 'cards';
+        }
+        if (!mobileQuery.matches && current === 'compact') return 'cards';
         return current;
       });
     };
 
-    adaptViewToViewport(mobileQuery);
+    adaptViewToViewport();
     mobileQuery.addEventListener('change', adaptViewToViewport);
-    return () => mobileQuery.removeEventListener('change', adaptViewToViewport);
+    landscapePhoneQuery.addEventListener('change', adaptViewToViewport);
+    return () => {
+      mobileQuery.removeEventListener('change', adaptViewToViewport);
+      landscapePhoneQuery.removeEventListener('change', adaptViewToViewport);
+    };
   }, []);
 
   useEffect(() => {
     if (view === 'cards' || view === 'compact') {
+      portraitViewRef.current = view;
       window.localStorage.setItem('usmnt-mobile-view', view);
     }
   }, [view]);
@@ -142,6 +156,11 @@ function PlayerCardGrid({ playerIds }) {
   }, [players]);
 
   const activeMinimumRating = minimumRating ?? lowestRating;
+  const changeMinimumRating = (value) => {
+    // The slider's lowest stop represents "no minimum." This keeps players
+    // without a rating visible when the control is returned to its start.
+    setMinimumRating(value <= lowestRating ? null : value);
+  };
   const activeFilterCount = Number(Boolean(search.trim()))
     + Number(sortBy !== 'value' || sortDirection !== 'desc')
     + Number(leagueFilter !== 'all')
@@ -250,7 +269,7 @@ function PlayerCardGrid({ playerIds }) {
             max={highestRating}
             step="0.01"
             value={activeMinimumRating}
-            onChange={(event) => setMinimumRating(Number(event.target.value))}
+            onChange={(event) => changeMinimumRating(Number(event.target.value))}
             style={{ '--rating-color': ratingColor(activeMinimumRating) }}
           />
         </label>
@@ -314,7 +333,9 @@ function PlayerCardGrid({ playerIds }) {
         <span className="mobile-result-count">{visiblePlayers.length} players</span>
       </div>
 
-      {view === 'cards' ? <div className="player-carousel-shell">
+      <div className="roster-view-stage" data-mobile-view={view === 'compact' ? 'compact' : 'cards'}>
+      {view !== 'table' ? <>
+        <div className="player-carousel-shell">
         {showSwipeHint && <div className="mobile-swipe-hint" aria-hidden="true">
           <span>Swipe to browse · tap a card for stats</span>
           <span className="swipe-hint-arrow">→</span>
@@ -326,7 +347,7 @@ function PlayerCardGrid({ playerIds }) {
           {visiblePlayers.length === 0 && <p className="status-message">No players match those filters.</p>}
           {error && <p className="status-message error">{error}</p>}
         </div>
-      </div> : view === 'compact' ? (
+        </div>
         <MobileCompactList
           players={visiblePlayers}
           error={error}
@@ -334,7 +355,7 @@ function PlayerCardGrid({ playerIds }) {
           sortDirection={sortDirection}
           onSort={toggleTableSort}
         />
-      ) : (
+      </> : (
         <PlayerTable
           players={visiblePlayers}
           error={error}
@@ -343,6 +364,7 @@ function PlayerCardGrid({ playerIds }) {
           onSort={toggleTableSort}
         />
       )}
+      </div>
 
       {mobileFiltersOpen && (
         <div className="mobile-filter-dialog" role="dialog" aria-modal="true" aria-label="Filter players">
@@ -376,7 +398,7 @@ function PlayerCardGrid({ playerIds }) {
 
             <label className="mobile-rating-filter">
               <span>Min. rating <strong style={{ color: ratingColor(activeMinimumRating) }}>{activeMinimumRating ? activeMinimumRating.toFixed(2) : 'Any'}</strong></span>
-              <input type="range" min={lowestRating} max={highestRating} step="0.01" value={activeMinimumRating} onChange={(event) => setMinimumRating(Number(event.target.value))} style={{ '--rating-color': ratingColor(activeMinimumRating) }} />
+              <input type="range" min={lowestRating} max={highestRating} step="0.01" value={activeMinimumRating} onChange={(event) => changeMinimumRating(Number(event.target.value))} style={{ '--rating-color': ratingColor(activeMinimumRating) }} />
             </label>
 
             <div className="mobile-filter-actions">

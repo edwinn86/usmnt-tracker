@@ -26,7 +26,7 @@ function CompactHeader({ column, label, sortBy, sortDirection, onSort, align = '
   return (
     <button
       type="button"
-      className={`mobile-compact-header-button align-${align}`}
+      className={`mobile-compact-header-button column-${column} align-${align}`}
       onClick={() => onSort(column)}
       aria-label={`Sort by ${label}`}
     >
@@ -62,6 +62,8 @@ function MobileCompactList({ players, error, sortBy, sortDirection, onSort }) {
           <CompactHeader column="name" label="Player" {...{ sortBy, sortDirection, onSort }} />
           <CompactHeader column="position" label="Position" {...{ sortBy, sortDirection, onSort }} />
           <CompactHeader column="matches" label="MP" align="center" {...{ sortBy, sortDirection, onSort }} />
+          <CompactHeader column="goals" label="G" align="center" {...{ sortBy, sortDirection, onSort }} />
+          <CompactHeader column="assists" label="A" align="center" {...{ sortBy, sortDirection, onSort }} />
           <CompactHeader column="rating" label="Rating" align="right" {...{ sortBy, sortDirection, onSort }} />
         </div>
         {players.map((player) => (
@@ -74,6 +76,8 @@ function MobileCompactList({ players, error, sortBy, sortDirection, onSort }) {
             <strong>{player.name}</strong>
             <span className="mobile-compact-position">{shortPosition(player.position)}</span>
             <span className="mobile-compact-matches">{player.matchesPlayed}</span>
+            <span className="mobile-compact-goals">{player.goals}</span>
+            <span className="mobile-compact-assists">{player.assists}</span>
             <span className={`mobile-compact-rating ${ratingClass(player.rating)}`}>
               {Number.isFinite(Number(player.rating)) ? Number(player.rating).toFixed(2) : 'N/A'}
             </span>

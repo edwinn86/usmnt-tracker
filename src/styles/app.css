@@ -130,6 +130,15 @@ main {
   position: relative;
 }
 
+.roster-view-stage {
+  min-width: 0;
+}
+
+.roster-view-stage .player-carousel-shell,
+.roster-view-stage .mobile-compact-list {
+  animation: none;
+}
+
 .mobile-swipe-hint {
   display: none;
 }
@@ -957,8 +966,47 @@ main {
   }
 }
 
+/* Tablet / small laptop: preserve the desktop controls without crushing them
+   into a single row (Surface Pro portrait is 912 CSS pixels wide). */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .roster-tools {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    margin-top: 16px;
+    padding-inline: 16px;
+  }
+
+  .roster-search {
+    flex: 1 1 190px;
+  }
+
+  .roster-select {
+    flex: 1 1 145px;
+  }
+
+  .rating-filter {
+    flex: 1 1 155px;
+  }
+
+  .roster-count {
+    border-right: 0;
+  }
+
+  .roster-summary {
+    flex: 1 1 210px;
+    justify-content: flex-start;
+    padding-top: 13px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 820px) {
+  .desktop-card-hint {
+    display: none;
+  }
+}
+
 /* Mobile (Under 640px) */
-@media (max-width: 640px) {
+@media (max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px) {
   .roster-tools {
     display: none;
   }
@@ -1133,8 +1181,8 @@ main {
 
   .mobile-view-trigger {
     display: grid;
-    width: 32px;
-    height: 32px;
+    width: 35px;
+    height: 35px;
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
@@ -1152,8 +1200,8 @@ main {
   }
 
   .mobile-view-trigger svg {
-    width: 16px;
-    height: 16px;
+    width: 19px;
+    height: 19px;
     fill: none;
     stroke: currentColor;
     stroke-linecap: round;
@@ -1328,13 +1376,26 @@ main {
   }
 
   .mobile-compact-list {
-    display: block;
+    display: none;
     width: calc(100% - 32px);
     margin: 12px 16px 32px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 11px;
     background: rgba(9, 18, 40, 0.78);
+    animation: mobile-view-enter 0.18s ease-out;
+  }
+
+  .player-carousel-shell {
+    animation: mobile-view-enter 0.18s ease-out;
+  }
+
+  .roster-view-stage[data-mobile-view='compact'] .player-carousel-shell {
+    display: none;
+  }
+
+  .roster-view-stage[data-mobile-view='compact'] .mobile-compact-list {
+    display: block;
   }
 
   .mobile-compact-row {
@@ -1396,9 +1457,9 @@ main {
   }
 
   .mobile-compact-header-button > span:last-child {
-    width: 7px;
+    width: 9px;
     color: #334155;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
   }
 
   .mobile-compact-header-button > span:last-child.active {
@@ -1442,12 +1503,21 @@ main {
     text-align: center;
   }
 
+  .mobile-compact-goals,
+  .mobile-compact-assists,
+  .mobile-compact-header-button.column-goals,
+  .mobile-compact-header-button.column-assists {
+    display: none;
+  }
+
   .mobile-compact-rating {
     display: inline-flex;
+    width: 45px;
     min-width: 45px;
     min-height: 27px;
     align-items: center;
     justify-content: center;
+    justify-self: end;
     padding: 2px 6px;
     border-radius: 6px;
     font-size: 0.7rem;
@@ -1765,7 +1835,7 @@ main {
 }
 
 /* Scale the mobile front card with its 90vw carousel width. */
-@media (max-width: 640px) {
+@media (max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px) {
   .card-front.player-card {
     min-height: clamp(516px, 138vw, 594px) !important;
   }
@@ -1864,6 +1934,104 @@ main {
   .mobile-filter-trigger {
     gap: 5px;
     padding-inline: 8px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 950px) {
+  .app-header {
+    gap: 8px;
+    padding: 10px 16px 8px;
+  }
+
+  .brand h1 {
+    font-size: 1.5rem;
+  }
+
+  .brand .subtitle {
+    font-size: 0.6rem;
+  }
+
+  .tab-bar {
+    padding-bottom: 2px;
+  }
+
+  .tab-button {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+
+  .mobile-filter-bar {
+    top: 10px;
+  }
+
+  .mobile-view-trigger {
+    display: none;
+  }
+
+  .player-carousel-shell {
+    display: none !important;
+  }
+
+  .mobile-compact-list {
+    display: block !important;
+    margin-top: 8px;
+  }
+
+  .mobile-compact-rating {
+    width: 45px;
+    min-width: 45px;
+    min-height: 24px;
+    padding: 1px 5px;
+    font-size: 0.66rem;
+  }
+
+  .mobile-compact-header,
+  .mobile-compact-row {
+    grid-template-columns: minmax(0, 1fr) minmax(90px, 130px) 38px 34px 34px 60px;
+  }
+
+  .mobile-compact-goals,
+  .mobile-compact-assists,
+  .mobile-compact-header-button.column-goals,
+  .mobile-compact-header-button.column-assists {
+    display: inline-flex;
+  }
+
+  .mobile-compact-goals,
+  .mobile-compact-assists {
+    justify-content: center;
+    color: #cbd5e1;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .mobile-compact-row {
+    min-height: 42px;
+    padding-block: 6px;
+  }
+
+  .mobile-filter-sheet {
+    max-height: calc(100svh - 8px);
+    overflow-y: auto;
+  }
+}
+
+@keyframes mobile-view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-compact-list,
+  .player-carousel-shell {
+    animation: none;
   }
 }
 
@@ -2527,7 +2695,7 @@ main {
 }
 
 /* Mobile card back */
-@media (max-width: 640px) {
+@media (max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px) {
   .card-back {
     padding: 13px 12px 10px;
   }
@@ -2660,7 +2828,7 @@ main {
 }
 
 /* Keep table-launched stats inside the viewport after mobile card sizing rules. */
-@media (max-width: 640px) {
+@media (max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px) {
   .player-stats-panel .card-front.player-card {
     min-height: min(594px, calc(100svh - 56px)) !important;
   }

@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "manage-players": "node scripts/manage-players.mjs",
+    "resolve-ids": "node scripts/resolve-player-ids.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist -r https://github.com/edwinn86/usmnt-tracker.git"
