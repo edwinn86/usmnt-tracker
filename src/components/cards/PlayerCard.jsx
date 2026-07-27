@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchCompetitionStats } from '../../hooks/usePlayersData';
+import FullStatsDialog from './FullStatsDialog';
 
 // Percentile colors run from red (low) to green (high).
 function getPercentileColor(percentile) {
@@ -114,6 +115,7 @@ function PlayerCard({
   );
   const [competitionError, setCompetitionError] = useState(null);
   const [metricMode, setMetricMode] = useState('totals');
+  const [showFullStats, setShowFullStats] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -483,6 +485,19 @@ function PlayerCard({
                   );
                 })}
               </div>
+              <button
+                type="button"
+                className="full-stats-trigger"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowFullStats(true);
+                }}
+              >
+                <span>View all stats</span>
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="m6 3 5 5-5 5" />
+                </svg>
+              </button>
             </div>
           ) : (
             <div className="historical-stats-container">
@@ -519,6 +534,17 @@ function PlayerCard({
           
         </div>
       </div>
+      {showFullStats && activeStats.fullStatGroups?.length > 0 && (
+        <FullStatsDialog
+          name={name}
+          competition={activeStats.leagueName || leagueName}
+          season={selectedSeason}
+          groups={activeStats.fullStatGroups}
+          mode={metricMode}
+          onModeChange={setMetricMode}
+          onClose={() => setShowFullStats(false)}
+        />
+      )}
     </div>
   );
 }

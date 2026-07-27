@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   parseAdvancedMetrics,
   parseCompetitionStats,
+  parseFullStatGroups,
   transformPlayerData,
 } from '../src/hooks/usePlayersData';
 
@@ -31,6 +32,52 @@ describe('FotMob data normalization', () => {
       isRate: false,
       statFormat: 'number',
       suffix: '/90',
+    });
+  });
+
+  it('preserves every advanced-stat group for the comprehensive breakdown', () => {
+    const groups = parseFullStatGroups({
+      statsSection: {
+        items: [{
+          title: 'Shooting',
+          items: [
+            {
+              title: 'Shots',
+              localizedTitleId: 'shots',
+              statValue: 31,
+              per90: 2.7,
+              percentileRank: 85.3,
+              percentileRankPer90: 67.9,
+              statFormat: 'number',
+            },
+            {
+              title: 'Shot accuracy',
+              localizedTitleId: 'shot_accuracy',
+              statValue: 45.2,
+              per90: 45.2,
+              percentileRank: 70,
+              percentileRankPer90: 70,
+              statFormat: 'percent',
+            },
+          ],
+        }],
+      },
+    });
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].title).toBe('Shooting');
+    expect(groups[0].metrics).toHaveLength(2);
+    expect(groups[0].metrics[0]).toMatchObject({
+      label: 'Shots',
+      total: 31,
+      per90: 2.7,
+      totalPercentile: 85,
+      per90Percentile: 68,
+    });
+    expect(groups[0].metrics[1]).toMatchObject({
+      label: 'Shot accuracy',
+      isRate: true,
+      suffix: '%',
     });
   });
 

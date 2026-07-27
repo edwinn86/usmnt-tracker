@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
 const CF_WORKER_URL = 'https://usmnt-fotmob-proxy.winring86.workers.dev';
-const DATA_MODE = import.meta.env.VITE_DATA_MODE || 'live';
+// Snapshot data is the safe default in every environment. Live FotMob requests
+// must be enabled explicitly with VITE_DATA_MODE=live.
+const DATA_MODE = import.meta.env.VITE_DATA_MODE || 'snapshot';
 const USE_SNAPSHOTS = DATA_MODE === 'snapshot';
 const SNAPSHOT_BASE = `${import.meta.env.BASE_URL}data`;
 
@@ -127,6 +129,26 @@ export function parseAdvancedMetrics(firstSeasonStats) {
   return Object.fromEntries(Object.entries(metrics).filter(([, metric]) => metric));
 }
 
+export function parseFullStatGroups(payload) {
+  const groups = payload?.statsSection?.items || payload?.statsSections || [];
+
+  return groups
+    .map((group) => ({
+      title: group.title || group.localizedTitleId || 'Other',
+      metrics: (group.items || group.stats || [])
+        .map((stat) => ({
+          key: stat.localizedTitleId || stat.title,
+          label: stat.title || stat.localizedTitleId || 'Metric',
+          ...metricFromStat(stat, {
+            per90: stat.statFormat !== 'percent',
+            suffix: stat.statFormat === 'percent' ? '%' : '/90',
+          }),
+        }))
+        .filter((metric) => Number.isFinite(metric.total) || Number.isFinite(metric.per90)),
+    }))
+    .filter((group) => group.metrics.length > 0);
+}
+
 function statValue(stats, ...keys) {
   const stat = findStat(stats, ...keys);
   return stat?.statValue ?? stat?.value ?? null;
@@ -138,6 +160,7 @@ export function parseCompetitionStats(payload) {
     .flatMap((group) => group.items || group.stats || []);
   const allStats = [...topStats, ...sectionStats];
   const advancedMetrics = parseAdvancedMetrics(payload);
+  const fullStatGroups = parseFullStatGroups(payload);
 
   return {
     matches: Number(statValue(topStats, 'matches_uppercase', 'matches')) || 0,
@@ -150,6 +173,7 @@ export function parseCompetitionStats(payload) {
     yellowCards: Number(statValue(allStats, 'yellow_cards')) || 0,
     redCards: Number(statValue(allStats, 'red_cards')) || 0,
     advancedMetrics,
+    fullStatGroups,
     hasAdvancedStats: Object.keys(advancedMetrics).length > 0,
   };
 }
