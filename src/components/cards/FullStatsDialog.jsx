@@ -27,6 +27,11 @@ function formatValue(metric, mode) {
 function FullStatsDialog({ name, competition, season, groups, mode, onModeChange, onClose }) {
   const closeRef = useRef(null);
   const onCloseRef = useRef(onClose);
+  const columnTitles = [
+    ['Shooting', 'Possession'],
+    ['Passing', 'Discipline'],
+    ['Defending'],
+  ];
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -46,6 +51,49 @@ function FullStatsDialog({ name, competition, season, groups, mode, onModeChange
     };
   }, []);
 
+  const renderMetric = (group, metric) => {
+    const rawPercentile = metric.isRate || mode === 'totals'
+      ? metric.totalPercentile
+      : metric.per90Percentile;
+    const percentile = Number.isFinite(rawPercentile) ? Math.min(99, rawPercentile) : null;
+
+    return (
+      <div className="full-stat-row" key={`${group.title}-${metric.key}`}>
+        <span className="full-stat-label">{metric.label}</span>
+        <strong>{formatValue(metric, mode)}</strong>
+        <div className="full-stat-percentile">
+          {percentile === null ? (
+            <span>—</span>
+          ) : (
+            <>
+              <i><b style={{ width: `${(percentile / 99) * 100}%`, backgroundColor: percentileColor(percentile) }} /></i>
+              <span>{ordinal(percentile)}</span>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderGroup = (group, groupIndex) => {
+    if (!group) return null;
+    return (
+      <section
+        className="full-stat-group"
+        key={group.title}
+        style={{ '--stat-order': groupIndex }}
+      >
+        <h3>{group.title}</h3>
+        <div className="full-stat-column-headings" aria-hidden="true">
+          <span>Metric</span><span>Value</span><span>Percentile</span>
+        </div>
+        <div className="full-stat-rows">
+          {group.metrics.map((metric) => renderMetric(group, metric))}
+        </div>
+      </section>
+    );
+  };
+
   return createPortal(
     <div className="full-stats-overlay" role="presentation" onClick={onClose}>
       <section
@@ -63,58 +111,25 @@ function FullStatsDialog({ name, competition, season, groups, mode, onModeChange
               <p>{competition} · {season}</p>
             </div>
           </div>
-          <button ref={closeRef} type="button" className="full-stats-close" onClick={onClose} aria-label="Close full stats">
-            ×
-          </button>
-        </header>
-
-        <div className="full-stats-scroll">
-          <div className="full-stats-controls">
+          <div className="full-stats-header-actions">
             <div className="full-stats-mode" role="group" aria-label="Full stats display">
               <button type="button" className={mode === 'totals' ? 'active' : ''} onClick={() => onModeChange('totals')}>Totals</button>
               <button type="button" className={mode === 'per90' ? 'active' : ''} onClick={() => onModeChange('per90')}>Per 90</button>
             </div>
+            <button ref={closeRef} type="button" className="full-stats-close" onClick={onClose} aria-label="Close full stats">
+              ×
+            </button>
           </div>
+        </header>
 
+        <div className="full-stats-scroll">
           <div className="full-stats-content">
-            {[0, 1].map((column) => (
+            {[0, 1, 2].map((column) => (
               <div className="full-stats-column" key={column}>
                 {groups.map((group, groupIndex) => {
-                  if (groupIndex % 2 !== column) return null;
-                  return (
-                    <section
-                      className="full-stat-group"
-                      key={group.title}
-                      style={{ '--stat-order': groupIndex }}
-                    >
-                      <h3>{group.title}</h3>
-                      <div className="full-stat-column-headings" aria-hidden="true">
-                        <span>Metric</span><span>Value</span><span>Percentile</span>
-                      </div>
-                      {group.metrics.map((metric) => {
-                        const rawPercentile = metric.isRate || mode === 'totals'
-                          ? metric.totalPercentile
-                          : metric.per90Percentile;
-                        const percentile = Number.isFinite(rawPercentile) ? Math.min(99, rawPercentile) : null;
-                        return (
-                          <div className="full-stat-row" key={`${group.title}-${metric.key}`}>
-                            <span className="full-stat-label">{metric.label}</span>
-                            <strong>{formatValue(metric, mode)}</strong>
-                            <div className="full-stat-percentile">
-                              {percentile === null ? (
-                                <span>—</span>
-                              ) : (
-                                <>
-                                  <i><b style={{ width: `${(percentile / 99) * 100}%`, backgroundColor: percentileColor(percentile) }} /></i>
-                                  <span>{ordinal(percentile)}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </section>
-                  );
+                  const assignedColumn = columnTitles.findIndex((titles) => titles.includes(group.title));
+                  if ((assignedColumn === -1 ? groupIndex % 3 : assignedColumn) !== column) return null;
+                  return renderGroup(group, groupIndex);
                 })}
               </div>
             ))}

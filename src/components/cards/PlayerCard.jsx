@@ -457,7 +457,9 @@ function PlayerCard({
 
                   return (
                     <div key={metric.key} className="metric-row">
-                      <span className="metric-label">{metric.label}</span>
+                      <span className="metric-label">
+                        {metricMode === 'per90' && metric.key === 'xGOT' ? 'xGOT' : metric.label}
+                      </span>
                       <span className="metric-value">
                         {formattedVal}
                         {!advancedMetric.isRate && metricMode === 'per90' && <span className="mobile-per-90"> /90</span>}

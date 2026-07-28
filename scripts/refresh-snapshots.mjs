@@ -153,15 +153,19 @@ async function main() {
     }
   });
 
+  console.log('Finalizing snapshots: fetching the EUR/USD exchange rate...');
+  const exchangeRateEurToUsd = await fetchExchangeRate();
+
   const manifest = {
     version: 1,
     generatedAt: new Date().toISOString(),
     playerIds: PLAYER_IDS,
-    exchangeRateEurToUsd: await fetchExchangeRate(),
+    exchangeRateEurToUsd,
     competitionSnapshots: jobs.length - warnings.length,
     reusedHistoricalSnapshots: reusedHistory,
     warnings,
   };
+  console.log('Writing snapshot manifest...');
   await writeJsonAtomic(path.join(DATA_ROOT, 'manifest.json'), manifest);
 
   console.log(`Snapshot complete: ${PLAYER_IDS.length} players, ${jobs.length - warnings.length} competitions.`);

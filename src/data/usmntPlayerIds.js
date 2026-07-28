@@ -50,7 +50,9 @@ export const usmntProspectIds = [
   1617160, //Luca Bombino
   1341120, //Duran Ferree
   1368139, //Tate Johnson
-  1738397 // Matthew Dos Santos
+  1738397, // Matthew Dos Santos
+  1362492, // Santiago Castañeda
+  1474341 // Francis Westfield
 ];
 
 export const usmntCuspIds = [
@@ -83,7 +85,10 @@ export const usmntCuspIds = [
   780418, //Luca de la Torre
   1363536, //Damion Downs
   825623, // Miles Robinson
-  830601 // Djordje Mihailovic
+  830601, // Djordje Mihailovic
+  1439800, // Patrick Agyemang
+  880095, // James Sands
+  1136403 // John Tolkin
 ];
 
 export const usmntDualIds = [
