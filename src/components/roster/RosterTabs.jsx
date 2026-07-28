@@ -96,9 +96,9 @@ function RosterTabs() {
           aria-label="About this tracker"
           title="About this tracker"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="8.5" />
-            <path d="M12 10.5v6M12 7.5h.01" />
+          <svg viewBox="0 0 18 18" aria-hidden="true">
+            <circle cx="9" cy="9" r="6.25" />
+            <path d="M9 8v4.5M9 5.5h.01" />
           </svg>
         </button>
       </header>

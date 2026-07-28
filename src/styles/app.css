@@ -85,11 +85,13 @@ main {
 
 .about-trigger svg,
 .mobile-about-trigger svg {
-  width: 17px;
-  height: 17px;
+  display: block;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-width: 1.7;
 }
 
@@ -304,7 +306,8 @@ main {
   padding: 0 24px;
 }
 
-.roster-tools label {
+.roster-tools label,
+.roster-league-select {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -339,9 +342,165 @@ main {
 .roster-select { flex: 0 1 170px; min-width: 130px; }
 .roster-select select { width: 100%; padding: 0 8px; }
 
+.roster-search-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.roster-filter-result {
+  color: #718096;
+  font-size: 0.6rem;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.league-multi {
+  position: relative;
+  min-width: 0;
+  color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.league-multi-trigger {
+  display: flex;
+  width: 100%;
+  height: 34px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 9px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #e2e8f0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.league-multi-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.league-multi-trigger svg {
+  width: 10px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: #94a3b8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  transition: transform 0.16s ease;
+}
+
+.league-multi-trigger.open svg { transform: rotate(180deg); }
+
+.league-multi-trigger:focus-visible,
+.league-multi-trigger.open {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.16);
+}
+
+.league-multi-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: max(100%, 230px);
+  padding: 7px;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 9px;
+  background: #0b142c;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.46);
+}
+
+.league-multi-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.league-multi-list {
+  max-height: min(320px, 52vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.league-multi-option {
+  display: flex !important;
+  min-height: 31px;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  padding: 5px 7px;
+  border-radius: 6px;
+  color: #cbd5e1 !important;
+  cursor: pointer;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.25;
+  text-transform: none !important;
+}
+
+.league-multi-option:hover { background: rgba(59, 130, 246, 0.12); }
+
+.league-multi-option input {
+  width: 15px !important;
+  height: 15px !important;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: #2563eb;
+}
+
+.league-multi-option > span {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.league-multi-all {
+  margin-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px 6px 0 0;
+}
+
+.league-multi-clear {
+  align-self: flex-start;
+  margin: 5px 7px 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #60a5fa;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.league-multi-clear:hover { color: #bfdbfe; }
+
 .rating-filter {
   flex: 0 1 164px;
   min-width: 140px;
+}
+
+@media (min-width: 1025px) {
+  .rating-filter {
+    flex-basis: 176px;
+    margin-inline: 4px;
+  }
 }
 
 .rating-filter span {
@@ -380,19 +539,6 @@ main {
   border-radius: 50%;
   background: var(--rating-color);
   box-shadow: 0 0 8px color-mix(in srgb, var(--rating-color), transparent 45%);
-}
-
-.roster-count {
-  display: inline-flex;
-  align-self: flex-end;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 9px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  color: #64748b;
-  font-size: 0.68rem;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 .desktop-card-hint {
@@ -1553,9 +1699,52 @@ main {
     margin-bottom: 16px;
   }
 
+  .mobile-league-field {
+    min-width: 0;
+    margin-bottom: 14px;
+  }
+
+  .mobile-filter-sort-row {
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 12px;
+  }
+
+  .league-multi-mobile {
+    max-height: 170px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.72);
+  }
+
+  .league-multi-mobile .league-multi-options {
+    height: 100%;
+    padding: 4px;
+  }
+
+  .league-multi-mobile .league-multi-list {
+    max-height: 118px;
+  }
+
+  .mobile-filter-field .league-multi-option input {
+    width: 15px;
+    height: 15px;
+    padding: 0;
+  }
+
+  .league-multi-mobile .league-multi-option {
+    min-height: 28px;
+    padding: 4px 6px;
+    font-size: 0.68rem !important;
+  }
+
   .mobile-rating-filter span {
     display: flex;
     justify-content: space-between;
+  }
+
+  .mobile-rating-filter {
+    margin-bottom: 14px;
   }
 
   .mobile-rating-filter input[type='range'] {
@@ -2981,14 +3170,22 @@ main {
   place-items: center;
   width: 36px;
   height: 36px;
-  padding: 0 0 3px;
+  padding: 0;
   border: 1px solid rgba(148, 163, 184, 0.26);
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.72);
   color: #cbd5e1;
   cursor: pointer;
-  font-size: 1.5rem;
-  line-height: 1;
+}
+
+.full-stats-close svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
 }
 
 .full-stats-close:hover,
@@ -3408,11 +3605,16 @@ main {
   }
 
   .metric-mode-bar {
-    margin-bottom: 3px;
+    margin: 2px 1px 7px;
+  }
+
+  .metric-mode-bar > span {
+    line-height: 1;
+    transform: translateY(1px);
   }
 
   .metric-mode-toggle button {
-    min-height: 22px;
+    min-height: 23px;
     padding: 2px 7px;
     font-size: 0.56rem;
   }
@@ -3505,6 +3707,7 @@ main {
     min-height: 18px;
     margin-top: auto;
     padding-block: 1px 0;
+    font-size: 0.7rem;
   }
 
   .flip-hint {
@@ -3534,7 +3737,7 @@ main {
 
   .full-stats-trigger {
     min-height: 22px;
-    font-size: 0.64rem;
+    font-size: 0.7rem;
   }
 }
 

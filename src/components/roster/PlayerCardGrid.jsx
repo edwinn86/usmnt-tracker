@@ -80,12 +80,91 @@ function ViewToggle({ view, onChange }) {
   );
 }
 
+function LeagueMultiSelect({ leagues, selectedLeagues, onChange, mobile = false }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const allLeagues = selectedLeagues.length === 0;
+  const summary = allLeagues
+    ? 'All leagues'
+    : selectedLeagues.length === 1
+      ? selectedLeagues[0]
+      : `${selectedLeagues.length} leagues`;
+
+  useEffect(() => {
+    if (!open || mobile) return undefined;
+    const closeOnOutsideInteraction = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOnOutsideInteraction);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideInteraction);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobile, open]);
+
+  const toggleLeague = (league) => {
+    onChange(
+      selectedLeagues.includes(league)
+        ? selectedLeagues.filter((item) => item !== league)
+        : [...selectedLeagues, league]
+    );
+  };
+
+  const checklist = (
+    <div className="league-multi-options" role="group" aria-label="Select leagues">
+      <label className="league-multi-option league-multi-all">
+        <input type="checkbox" checked={allLeagues} onChange={() => onChange([])} />
+        <span>All leagues</span>
+      </label>
+      <div className="league-multi-list">
+        {leagues.map((league) => (
+          <label className="league-multi-option" key={league}>
+            <input
+              type="checkbox"
+              checked={selectedLeagues.includes(league)}
+              onChange={() => toggleLeague(league)}
+            />
+            <span>{league}</span>
+          </label>
+        ))}
+      </div>
+      {!allLeagues && (
+        <button type="button" className="league-multi-clear" onClick={() => onChange([])}>
+          Clear selection
+        </button>
+      )}
+    </div>
+  );
+
+  if (mobile) return <div className="league-multi league-multi-mobile">{checklist}</div>;
+
+  return (
+    <div className="league-multi" ref={rootRef}>
+      <button
+        type="button"
+        className={`league-multi-trigger ${open ? 'open' : ''}`}
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        <span>{summary}</span>
+        <svg viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg>
+      </button>
+      {open && <div className="league-multi-popover">{checklist}</div>}
+    </div>
+  );
+}
+
 function PlayerCardGrid({ playerIds, onOpenAbout }) {
   const { players, loading, error } = usePlayersData(playerIds);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('value');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [leagueFilter, setLeagueFilter] = useState('all');
+  const [selectedLeagues, setSelectedLeagues] = useState([]);
   const [minimumRating, setMinimumRating] = useState(null);
   const [view, setView] = useState(() => (
     window.matchMedia('(max-width: 640px)').matches
@@ -163,14 +242,14 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
   };
   const activeFilterCount = Number(Boolean(search.trim()))
     + Number(sortBy !== 'value' || sortDirection !== 'desc')
-    + Number(leagueFilter !== 'all')
+    + Number(selectedLeagues.length > 0)
     + Number(minimumRating !== null);
 
   const clearFilters = () => {
     setSearch('');
     setSortBy('value');
     setSortDirection('desc');
-    setLeagueFilter('all');
+    setSelectedLeagues([]);
     setMinimumRating(null);
   };
 
@@ -178,7 +257,7 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
     const query = search.trim().toLocaleLowerCase();
     const filtered = players.filter((player) => {
       const matchesName = !query || player.name.toLocaleLowerCase().includes(query);
-      const matchesLeague = leagueFilter === 'all' || player.leagueName === leagueFilter;
+      const matchesLeague = selectedLeagues.length === 0 || selectedLeagues.includes(player.leagueName);
       const matchesRating = minimumRating === null || numericValue(player.rating) >= activeMinimumRating;
       return matchesName && matchesLeague && matchesRating;
     });
@@ -199,7 +278,7 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
       const [aValue, bValue] = sortValues[sortBy] || [0, 0];
       return (aValue - bValue) * direction || a.name.localeCompare(b.name);
     });
-  }, [players, search, leagueFilter, minimumRating, activeMinimumRating, sortBy, sortDirection]);
+  }, [players, search, selectedLeagues, minimumRating, activeMinimumRating, sortBy, sortDirection]);
 
   const changeSort = (nextSort) => {
     setSortBy(nextSort);
@@ -234,7 +313,10 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
     <>
       <section className="roster-tools" aria-label="Roster controls">
         <label className="roster-search">
-          <span>Search</span>
+          <span className="roster-search-heading">
+            <span>Search</span>
+            <span className="roster-filter-result">{visiblePlayers.length} of {players.length}</span>
+          </span>
           <input
             type="search"
             value={search}
@@ -250,13 +332,14 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
           </select>
         </label>
 
-        <label className="roster-select">
+        <div className="roster-select roster-league-select">
           <span>League</span>
-          <select value={leagueFilter} onChange={(event) => setLeagueFilter(event.target.value)}>
-            <option value="all">All leagues</option>
-            {leagues.map((league) => <option key={league} value={league}>{league}</option>)}
-          </select>
-        </label>
+          <LeagueMultiSelect
+            leagues={leagues}
+            selectedLeagues={selectedLeagues}
+            onChange={setSelectedLeagues}
+          />
+        </div>
 
         <label className="rating-filter">
           <span>
@@ -273,8 +356,6 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
             style={{ '--rating-color': ratingColor(activeMinimumRating) }}
           />
         </label>
-
-        <span className="roster-count">{visiblePlayers.length} of {players.length}</span>
 
         <div className="roster-view-control">
           <span>View</span>
@@ -380,20 +461,23 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
               <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Player name" />
             </label>
 
-            <div className="mobile-filter-pair">
+            <div className="mobile-filter-pair mobile-filter-sort-row">
               <label className="mobile-filter-field">
                 <span>Sort by</span>
                 <select value={sortBy} onChange={(event) => changeSort(event.target.value)}>
                   {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
-              <label className="mobile-filter-field">
-                <span>League</span>
-                <select value={leagueFilter} onChange={(event) => setLeagueFilter(event.target.value)}>
-                  <option value="all">All leagues</option>
-                  {leagues.map((league) => <option key={league} value={league}>{league}</option>)}
-                </select>
-              </label>
+            </div>
+
+            <div className="mobile-filter-field mobile-league-field">
+              <span>Leagues</span>
+              <LeagueMultiSelect
+                leagues={leagues}
+                selectedLeagues={selectedLeagues}
+                onChange={setSelectedLeagues}
+                mobile
+              />
             </div>
 
             <label className="mobile-rating-filter">
@@ -413,9 +497,9 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
                 onOpenAbout?.();
               }}
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="8.5" />
-                <path d="M12 10.5v6M12 7.5h.01" />
+              <svg viewBox="0 0 18 18" aria-hidden="true">
+                <circle cx="9" cy="9" r="6.25" />
+                <path d="M9 8v4.5M9 5.5h.01" />
               </svg>
               About this tracker
             </button>

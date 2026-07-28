@@ -117,7 +117,9 @@ function FullStatsDialog({ name, competition, season, groups, mode, onModeChange
               <button type="button" className={mode === 'per90' ? 'active' : ''} onClick={() => onModeChange('per90')}>Per 90</button>
             </div>
             <button ref={closeRef} type="button" className="full-stats-close" onClick={onClose} aria-label="Close full stats">
-              ×
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
             </button>
           </div>
         </header>
