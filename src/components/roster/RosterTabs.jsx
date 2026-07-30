@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import PlayerCardGrid from './PlayerCardGrid';
+import PlayerComparison from '../comparison/PlayerComparison';
 import {
   usmntPlayerIds,
   usmntProspectIds,
@@ -39,6 +40,7 @@ function RosterTabs() {
   const [activeTab, setActiveTab] = useState(TABS[0].key);
   const [snapshotDate, setSnapshotDate] = useState(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const activeIds = TABS.find((tab) => tab.key === activeTab)?.ids ?? [];
 
   useEffect(() => {
@@ -108,7 +110,12 @@ function RosterTabs() {
         key={activeTab}
         playerIds={activeIds}
         onOpenAbout={() => setAboutOpen(true)}
+        onOpenComparison={() => setComparisonOpen(true)}
       />
+
+      {comparisonOpen && (
+        <PlayerComparison playerIds={fullPoolIds} onClose={() => setComparisonOpen(false)} />
+      )}
 
       {aboutOpen && (
         <div className="about-dialog" role="dialog" aria-modal="true" aria-labelledby="about-title">

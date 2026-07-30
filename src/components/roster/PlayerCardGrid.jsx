@@ -159,7 +159,7 @@ function LeagueMultiSelect({ leagues, selectedLeagues, onChange, mobile = false 
   );
 }
 
-function PlayerCardGrid({ playerIds, onOpenAbout }) {
+function PlayerCardGrid({ playerIds, onOpenAbout, onOpenComparison }) {
   const { players, loading, error } = usePlayersData(playerIds);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('value');
@@ -363,19 +363,31 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
         </div>
 
         <div className="roster-summary">
-          {view === 'cards' && (
-            <span className="desktop-card-hint">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="5" y="3.5" width="14" height="17" rx="3" />
-                <path d="M9 8h6M9 12h6" />
-              </svg>
-              Flip a card for advanced stats
-            </span>
-          )}
+          <button type="button" className="compare-players-trigger" onClick={onOpenComparison}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="8" cy="8" r="3" />
+              <circle cx="16" cy="8" r="3" />
+              <path d="M3.5 18c.5-3 2-4.5 4.5-4.5s4 1.5 4.5 4.5M11.5 18c.5-3 2-4.5 4.5-4.5s4 1.5 4.5 4.5" />
+            </svg>
+            Compare
+          </button>
         </div>
       </section>
 
       <div className="mobile-filter-bar">
+        <button
+          type="button"
+          className="mobile-compare-trigger"
+          onClick={onOpenComparison}
+          aria-label="Compare players"
+          title="Compare players"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="8" cy="8" r="3" />
+            <circle cx="16" cy="8" r="3" />
+            <path d="M3.5 18c.5-3 2-4.5 4.5-4.5s4 1.5 4.5 4.5M11.5 18c.5-3 2-4.5 4.5-4.5s4 1.5 4.5 4.5" />
+          </svg>
+        </button>
         <button
           type="button"
           className={`mobile-view-trigger ${view === 'compact' ? 'active' : ''}`}
@@ -418,10 +430,13 @@ function PlayerCardGrid({ playerIds, onOpenAbout }) {
       {view !== 'table' ? <>
         <div className="player-carousel-shell">
         {showSwipeHint && <div className="mobile-swipe-hint" aria-hidden="true">
-          <span>Swipe to browse · tap a card for stats</span>
-          <span className="swipe-hint-arrow">→</span>
+          Swipe cards / Tap for stats
         </div>}
-        <div className="player-grid">
+        <div
+          className="player-grid"
+          onPointerDown={() => setShowSwipeHint(false)}
+          onScroll={() => setShowSwipeHint(false)}
+        >
           {visiblePlayers.map((player) => (
             <PlayerCard key={player.id} {...player} />
           ))}

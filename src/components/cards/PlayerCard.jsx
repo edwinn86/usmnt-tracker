@@ -282,6 +282,7 @@ function PlayerCard({
         <div 
           className="card-face card-front player-card" 
           onClick={() => handleFlip(true)}
+          title="Flip for advanced stats"
         >
           <img
             src={photoUrl}
