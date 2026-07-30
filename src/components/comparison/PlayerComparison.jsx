@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import usePlayersData, { fetchCompetitionStats } from '../../hooks/usePlayersData';
+import { leagueWordmarkClass } from '../../leagueBranding';
 
 const GROUP_ORDER = ['Shooting', 'Passing', 'Possession', 'Defending', 'Discipline'];
 const LOWER_IS_BETTER = [
@@ -12,6 +13,34 @@ const LOWER_IS_BETTER = [
   /goals conceded/i,
   /xg against/i,
 ];
+
+const POSITION_ABBREVIATIONS = {
+  Keeper: 'GK',
+  Goalkeeper: 'GK',
+  'Center Back': 'CB',
+  'Left Back': 'LB',
+  'Right Back': 'RB',
+  'Left Wing-Back': 'LWB',
+  'Right Wing-Back': 'RWB',
+  'Defensive Midfielder': 'CDM',
+  'Central Midfielder': 'CM',
+  'Attacking Midfielder': 'CAM',
+  'Left Midfielder': 'LM',
+  'Right Midfielder': 'RM',
+  'Left Winger': 'LW',
+  'Right Winger': 'RW',
+  Striker: 'ST',
+  Forward: 'ST',
+  'Second Striker': 'CF',
+};
+
+function shortPosition(position) {
+  return POSITION_ABBREVIATIONS[position] || position;
+}
+
+function comparisonKey(playerId, season, competitionId) {
+  return `${playerId}::${season}::${competitionId}`;
+}
 
 function displayedValue(metric, mode) {
   if (!metric) return null;
@@ -48,16 +77,38 @@ function percentileColor(percentile) {
   return `hsl(${(Math.max(0, Math.min(99, percentile)) / 99) * 120}, 75%, 42%)`;
 }
 
-function defaultConfigForPlayer(player) {
-  const season = player.season || player.availableSeasons[0] || '';
-  const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === season)
-    || player.seasonEntries[0]
-    || {};
-  const competition = seasonEntry.competitions?.find((item) => String(item.entryId) === String(seasonEntry.defaultCompetitionId))
-    || seasonEntry.competitions?.find((item) => item.hasDeepStats)
-    || seasonEntry.competitions?.[0];
+function defaultConfigForPlayer(player, unavailable = new Set()) {
+  const preferredSeason = player.season || player.availableSeasons[0] || '';
+  const playerKeyPrefix = `${player.id}::`;
+  const usedSeasons = new Set([...unavailable]
+    .filter((key) => key.startsWith(playerKeyPrefix))
+    .map((key) => key.slice(playerKeyPrefix.length).split('::')[0]));
+  const seasonEntries = [...player.seasonEntries].sort((a, b) => (
+    Number(usedSeasons.has(a.seasonName)) - Number(usedSeasons.has(b.seasonName))
+    || Number(b.seasonName === preferredSeason) - Number(a.seasonName === preferredSeason)
+  ));
+  let seasonEntry = seasonEntries[0] || {};
+  let competition;
+
+  for (const entry of seasonEntries) {
+    const competitions = [...(entry.competitions || [])].sort((a, b) => (
+      Number(String(b.entryId) === String(entry.defaultCompetitionId))
+      - Number(String(a.entryId) === String(entry.defaultCompetitionId))
+      || Number(b.hasDeepStats) - Number(a.hasDeepStats)
+    ));
+    const available = competitions.find((item) => (
+      !unavailable.has(comparisonKey(player.id, entry.seasonName, item.entryId))
+    ));
+    if (available) {
+      seasonEntry = entry;
+      competition = available;
+      break;
+    }
+  }
+
+  competition ||= seasonEntry.competitions?.[0];
   return {
-    season: seasonEntry.seasonName || season,
+    season: seasonEntry.seasonName || preferredSeason,
     competitionId: competition?.entryId || '',
     stats: null,
     loading: false,
@@ -74,10 +125,11 @@ function CloseIcon() {
 }
 
 function PlayerSlot({
-  slot,
+  slotId,
+  slotIndex,
   player,
   players,
-  selectedIds,
+  selectedEntries,
   loading,
   config,
   onSelect,
@@ -106,19 +158,19 @@ function PlayerSlot({
 
   const suggestions = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
-    if (!normalized) return players.filter((candidate) => !selectedIds.has(candidate.id)).slice(0, 5);
+    if (!normalized) return players.slice(0, 5);
     return players
-      .filter((candidate) => !selectedIds.has(candidate.id) && candidate.name.toLocaleLowerCase().includes(normalized))
+      .filter((candidate) => candidate.name.toLocaleLowerCase().includes(normalized))
       .sort((a, b) => {
         const aStarts = a.name.toLocaleLowerCase().startsWith(normalized);
         const bStarts = b.name.toLocaleLowerCase().startsWith(normalized);
         return Number(bStarts) - Number(aStarts) || a.name.localeCompare(b.name);
       })
       .slice(0, 5);
-  }, [players, query, selectedIds]);
+  }, [players, query]);
 
   const choosePlayer = (nextPlayer) => {
-    onSelect(slot, nextPlayer);
+    onSelect(slotId, nextPlayer);
     setQuery('');
     setFocused(false);
   };
@@ -127,24 +179,30 @@ function PlayerSlot({
     ? player.seasonEntries.find((entry) => entry.seasonName === config?.season) || player.seasonEntries[0] || {}
     : {};
   const competitions = seasonEntry.competitions || [];
+  const combinationUsedElsewhere = (competitionId) => selectedEntries.some((entry) => (
+    entry.slotId !== slotId
+    && entry.player?.id === player?.id
+    && entry.config?.season === config?.season
+    && String(entry.config?.competitionId) === String(competitionId)
+  ));
 
   return (
     <section className={`comparison-player-slot ${player ? 'filled' : ''}`}>
       <header>
-        <span>Player {slot + 1}</span>
+        <span>Player {slotIndex + 1}</span>
         <div className="comparison-slot-actions">
           {player && (
-            <button type="button" className="comparison-change-player" onClick={() => onClear(slot)} aria-label={`Change ${player.name}`}>
+            <button type="button" className="comparison-change-player" onClick={() => onClear(slotId)} aria-label={`Change ${player.name}`}>
               Change
             </button>
           )}
-          {slot > 1 && (
+          {slotIndex > 1 && (
             <button
               type="button"
               className="comparison-remove-slot"
-              onClick={() => onRemoveSlot(slot)}
-              aria-label={`Remove player ${slot + 1} slot`}
-              title={`Remove player ${slot + 1} slot`}
+              onClick={() => onRemoveSlot(slotId)}
+              aria-label={`Remove player ${slotIndex + 1} slot`}
+              title={`Remove player ${slotIndex + 1} slot`}
             >
               <CloseIcon />
             </button>
@@ -158,21 +216,28 @@ function PlayerSlot({
             <img src={player.photoUrl} alt="" />
             <span>
               <strong>{player.name}</strong>
-              <small>{player.position} · {seasonEntry.teamName || player.teamName}</small>
+              <small>
+                <span>{shortPosition(player.position)}</span>
+                <span>{seasonEntry.teamName || player.teamName}</span>
+              </small>
             </span>
           </div>
           <div className="comparison-slot-config">
             <label>
               <span>Season</span>
-              <select value={config?.season || ''} onChange={(event) => onSeasonChange(player, event.target.value)} aria-label={`${player.name} season`}>
+              <select value={config?.season || ''} onChange={(event) => onSeasonChange(slotId, player, event.target.value)} aria-label={`${player.name} season`}>
                 {player.availableSeasons.map((season) => <option key={season}>{season}</option>)}
               </select>
             </label>
             <label>
               <span>Competition</span>
-              <select value={config?.competitionId || ''} onChange={(event) => onCompetitionChange(player.id, event.target.value)} aria-label={`${player.name} competition`}>
+              <select value={config?.competitionId || ''} onChange={(event) => onCompetitionChange(slotId, event.target.value)} aria-label={`${player.name} competition`}>
                 {competitions.map((competition) => (
-                  <option key={competition.entryId} value={competition.entryId}>
+                  <option
+                    key={competition.entryId}
+                    value={competition.entryId}
+                    disabled={combinationUsedElsewhere(competition.entryId)}
+                  >
                     {competition.name}{competition.hasDeepStats ? '' : ' (summary)'}
                   </option>
                 ))}
@@ -195,20 +260,20 @@ function PlayerSlot({
             onChange={(event) => setQuery(event.target.value)}
             onFocus={() => setFocused(true)}
             placeholder={loading ? 'Loading players…' : 'Start typing a player name'}
-            aria-label={`Search for player ${slot + 1}`}
+            aria-label={`Search for player ${slotIndex + 1}`}
             disabled={loading}
-            autoFocus={slot === 0}
+            autoFocus={slotIndex === 0}
           />
           {focused && !loading && (
-            <div className="comparison-slot-suggestions" role="listbox" aria-label={`Suggestions for player ${slot + 1}`}>
+            <div className="comparison-slot-suggestions" role="listbox" aria-label={`Suggestions for player ${slotIndex + 1}`}>
               {suggestions.map((candidate) => (
                 <button type="button" key={candidate.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choosePlayer(candidate)} role="option">
                   <img src={candidate.photoUrl} alt="" />
-                  <span><strong>{candidate.name}</strong><small>{candidate.position} · {candidate.teamName}</small></span>
+                  <span><strong>{candidate.name}</strong><small>{shortPosition(candidate.position)} · {candidate.teamName}</small></span>
                   <b>Select</b>
                 </button>
               ))}
-              {query && suggestions.length === 0 && <p>No matching unselected players.</p>}
+              {query && suggestions.length === 0 && <p>No matching players.</p>}
             </div>
           )}
         </div>
@@ -232,11 +297,17 @@ function PlayerPicker({
   onSeasonChange,
   onCompetitionChange,
 }) {
-  const selectedPlayers = selected.filter(Boolean);
-  const selectedIds = useMemo(
-    () => new Set(selected.filter(Boolean).map((player) => player.id)),
-    [selected]
-  );
+  const selectedEntries = selected.map((entry) => ({
+    ...entry,
+    config: configs[entry.slotId],
+  }));
+  const selectedPlayers = selectedEntries.filter((entry) => entry.player);
+  const combinationKeys = selectedPlayers.map((entry) => comparisonKey(
+    entry.player.id,
+    entry.config?.season,
+    entry.config?.competitionId
+  ));
+  const hasDuplicateCombination = new Set(combinationKeys).size !== combinationKeys.length;
 
   return (
     <section className="comparison-picker" aria-labelledby="comparison-picker-title">
@@ -254,15 +325,16 @@ function PlayerPicker({
       <div className="comparison-picker-body">
         {error && <p className="comparison-picker-error">{error}</p>}
         <div className="comparison-player-slots" aria-label="Comparison player order">
-          {selected.map((player, slot) => (
+          {selectedEntries.map((entry, slotIndex) => (
             <PlayerSlot
-              key={slot}
-              slot={slot}
-              player={player}
+              key={entry.slotId}
+              slotId={entry.slotId}
+              slotIndex={slotIndex}
+              player={entry.player}
               players={players}
-              selectedIds={selectedIds}
+              selectedEntries={selectedEntries}
               loading={loading}
-              config={player ? configs[player.id] : null}
+              config={entry.player ? entry.config : null}
               onSelect={onSelect}
               onClear={onClear}
               onRemoveSlot={onRemoveSlot}
@@ -281,8 +353,14 @@ function PlayerPicker({
       </div>
 
       <footer className="comparison-picker-footer">
-        <span>{selectedPlayers.length < 2 ? `Select ${2 - selectedPlayers.length} more` : `${selectedPlayers.length} players ready`}</span>
-        <button type="button" disabled={selectedPlayers.length < 2} onClick={onCompare}>Compare players</button>
+        <span>
+          {selectedPlayers.length < 2
+            ? `Select ${2 - selectedPlayers.length} more`
+            : hasDuplicateCombination
+              ? 'Choose a different season or competition'
+              : `${selectedPlayers.length} players ready`}
+        </span>
+        <button type="button" disabled={selectedPlayers.length < 2 || hasDuplicateCombination} onClick={onCompare}>Compare players</button>
       </footer>
     </section>
   );
@@ -292,12 +370,23 @@ function PlayerHeader({ player, config }) {
   const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === config.season)
     || player.seasonEntries[0]
     || {};
+  const competition = seasonEntry.competitions?.find((item) => (
+    String(item.entryId) === String(config.competitionId)
+  ));
+  const competitionName = competition?.name || 'Competition unavailable';
   return (
     <article className="comparison-player-header">
       <img src={player.photoUrl} alt="" />
       <div className="comparison-player-identity">
         <h3>{player.name}</h3>
-        <p>{player.position} · {seasonEntry.teamName || player.teamName}</p>
+        <p>
+          <span className="comparison-player-position">{shortPosition(player.position)}</span>
+          <span className="comparison-player-team">{seasonEntry.teamName || player.teamName}</span>
+        </p>
+      </div>
+      <div className="comparison-player-context">
+        <span>{config.season}</span>
+        <span className={leagueWordmarkClass(competitionName)}>{competitionName}</span>
       </div>
       <div className="comparison-player-sample">
         <span><b>{config.stats?.matches ?? seasonEntry.matches ?? 0}</b> matches</span>
@@ -307,42 +396,42 @@ function PlayerHeader({ player, config }) {
   );
 }
 
-function ComparisonResults({ players, configs, setConfigs, onBack }) {
+function ComparisonResults({ entries, configs, setConfigs, onBack }) {
   const [mode, setMode] = useState('per90');
 
   useEffect(() => {
-    players.forEach((player) => {
-      const config = configs[player.id];
+    entries.forEach(({ slotId, player }) => {
+      const config = configs[slotId];
       if (!config?.competitionId || config.loading || config.stats || config.error) return;
       const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === config.season) || {};
       const competition = seasonEntry.competitions?.find((item) => String(item.entryId) === String(config.competitionId));
       if (!competition?.hasDeepStats) {
         setConfigs((current) => ({
           ...current,
-          [player.id]: { ...current[player.id], error: 'Advanced stats unavailable for this competition.' },
+          [slotId]: { ...current[slotId], error: 'Advanced stats unavailable for this competition.' },
         }));
         return;
       }
       setConfigs((current) => ({
         ...current,
-        [player.id]: { ...current[player.id], loading: true },
+        [slotId]: { ...current[slotId], loading: true },
       }));
       fetchCompetitionStats(player.id, config.competitionId)
         .then((stats) => setConfigs((current) => ({
           ...current,
-          [player.id]: { ...current[player.id], stats, loading: false, error: null },
+          [slotId]: { ...current[slotId], stats, loading: false, error: null },
         })))
         .catch((error) => setConfigs((current) => ({
           ...current,
-          [player.id]: { ...current[player.id], loading: false, error: error.message },
+          [slotId]: { ...current[slotId], loading: false, error: error.message },
         })));
     });
-  }, [players, configs, setConfigs]);
+  }, [entries, configs, setConfigs]);
 
   const groups = useMemo(() => {
     const groupMap = new Map();
-    players.forEach((player) => {
-      (configs[player.id]?.stats?.fullStatGroups || []).forEach((group) => {
+    entries.forEach(({ slotId }) => {
+      (configs[slotId]?.stats?.fullStatGroups || []).forEach((group) => {
         if (!groupMap.has(group.title)) groupMap.set(group.title, new Map());
         const metrics = groupMap.get(group.title);
         group.metrics.forEach((metric) => {
@@ -358,17 +447,17 @@ function ComparisonResults({ players, configs, setConfigs, onBack }) {
         const bIndex = GROUP_ORDER.indexOf(b.title);
         return (aIndex < 0 ? 99 : aIndex) - (bIndex < 0 ? 99 : bIndex);
       });
-  }, [players, configs]);
+  }, [entries, configs]);
 
-  const metricFor = (playerId, groupTitle, metricKey) => {
-    const group = configs[playerId]?.stats?.fullStatGroups?.find((item) => item.title === groupTitle);
+  const metricFor = (slotId, groupTitle, metricKey) => {
+    const group = configs[slotId]?.stats?.fullStatGroups?.find((item) => item.title === groupTitle);
     return group?.metrics.find((metric) => String(metric.key || metric.label).toLocaleLowerCase() === metricKey);
   };
 
   const winnerIds = (groupTitle, metric) => {
-    const values = players.map((player) => ({
-      id: player.id,
-      value: displayedValue(metricFor(player.id, groupTitle, metric.key), mode),
+    const values = entries.map(({ slotId }) => ({
+      id: slotId,
+      value: displayedValue(metricFor(slotId, groupTitle, metric.key), mode),
     })).filter((entry) => entry.value !== null);
     if (values.length < 2) return new Set();
     const target = LOWER_IS_BETTER.some((pattern) => pattern.test(metric.label))
@@ -379,8 +468,8 @@ function ComparisonResults({ players, configs, setConfigs, onBack }) {
     return new Set(winners.map((entry) => entry.id));
   };
 
-  const anyLoading = players.some((player) => configs[player.id]?.loading);
-  const readyCount = players.filter((player) => configs[player.id]?.stats).length;
+  const anyLoading = entries.some(({ slotId }) => configs[slotId]?.loading);
+  const readyCount = entries.filter(({ slotId }) => configs[slotId]?.stats).length;
 
   return (
     <section className="comparison-results" aria-label="Player comparison results">
@@ -405,48 +494,49 @@ function ComparisonResults({ players, configs, setConfigs, onBack }) {
           style.setProperty('--comparison-header-gap', `${6 * (1 - progress)}px`);
           style.setProperty('--comparison-photo-size', `${30 * (1 - progress)}px`);
           style.setProperty('--comparison-detail-height', `${20 * (1 - progress)}px`);
+          style.setProperty('--comparison-context-height', `${16 * (1 - progress)}px`);
           style.setProperty('--comparison-sample-height', `${18 * (1 - progress)}px`);
           style.setProperty('--comparison-detail-opacity', String(1 - progress));
           style.setProperty('--comparison-name-size', `${0.68 - (0.05 * progress)}rem`);
         }}
       >
-        <div className="comparison-table" style={{ '--comparison-players': players.length }}>
+        <div className="comparison-table" style={{ '--comparison-players': entries.length }}>
           <div className="comparison-corner">
             <strong>Stats</strong>
           </div>
-          {players.map((player) => (
+          {entries.map(({ slotId, player }) => (
             <PlayerHeader
-              key={player.id}
+              key={slotId}
               player={player}
-              config={configs[player.id]}
+              config={configs[slotId]}
             />
           ))}
 
           {anyLoading && groups.length === 0 && (
-            <div className="comparison-loading-row" style={{ gridColumn: `1 / span ${players.length + 1}` }}>
-              Loading advanced statistics for {players.length} players…
+            <div className="comparison-loading-row" style={{ gridColumn: `1 / span ${entries.length + 1}` }}>
+              Loading advanced statistics for {entries.length} players…
             </div>
           )}
 
           {!anyLoading && readyCount < 2 && groups.length === 0 && (
-            <div className="comparison-loading-row error" style={{ gridColumn: `1 / span ${players.length + 1}` }}>
+            <div className="comparison-loading-row error" style={{ gridColumn: `1 / span ${entries.length + 1}` }}>
               At least two selected competitions need advanced statistics.
             </div>
           )}
 
           {groups.map((group) => (
             <div className="comparison-group-contents" key={group.title}>
-              <div className="comparison-group-title" style={{ gridColumn: `1 / span ${players.length + 1}` }}>{group.title}</div>
+              <div className="comparison-group-title" style={{ gridColumn: `1 / span ${entries.length + 1}` }}>{group.title}</div>
               {group.metrics.map((metric) => {
                 const winners = winnerIds(group.title, metric);
                 return (
                   <div className="comparison-metric-contents" key={`${group.title}-${metric.key}`}>
                     <div className="comparison-metric-name">{metric.label}</div>
-                    {players.map((player) => {
-                      const playerMetric = metricFor(player.id, group.title, metric.key);
+                    {entries.map(({ slotId }) => {
+                      const playerMetric = metricFor(slotId, group.title, metric.key);
                       const percentile = displayedPercentile(playerMetric, mode);
                       return (
-                        <div className={`comparison-value ${winners.has(player.id) ? 'winner' : ''}`} key={player.id}>
+                        <div className={`comparison-value ${winners.has(slotId) ? 'winner' : ''}`} key={slotId}>
                           <strong>{formatValue(playerMetric, mode)}</strong>
                           {percentile === null ? (
                             <span className="comparison-no-percentile">No percentile</span>
@@ -472,7 +562,11 @@ function ComparisonResults({ players, configs, setConfigs, onBack }) {
 
 function PlayerComparison({ playerIds, onClose }) {
   const { players, loading, error } = usePlayersData(playerIds);
-  const [selected, setSelected] = useState([null, null]);
+  const nextSlotId = useRef(3);
+  const [selected, setSelected] = useState([
+    { slotId: 'slot-1', player: null },
+    { slotId: 'slot-2', player: null },
+  ]);
   const [configs, setConfigs] = useState({});
   const [comparing, setComparing] = useState(false);
   const onCloseRef = useRef(onClose);
@@ -494,21 +588,38 @@ function PlayerComparison({ playerIds, onClose }) {
     };
   }, []);
 
-  const selectPlayer = (slot, player) => {
-    setSelected((current) => current.map((item, index) => index === slot ? player : item));
+  const unavailableKeys = (excludedSlotId) => new Set(selected
+    .filter((entry) => entry.slotId !== excludedSlotId && entry.player && configs[entry.slotId])
+    .map((entry) => comparisonKey(
+      entry.player.id,
+      configs[entry.slotId].season,
+      configs[entry.slotId].competitionId
+    )));
+
+  const selectPlayer = (slotId, player) => {
+    setSelected((current) => current.map((entry) => (
+      entry.slotId === slotId ? { ...entry, player } : entry
+    )));
     setConfigs((current) => ({
       ...current,
-      [player.id]: current[player.id] || defaultConfigForPlayer(player),
+      [slotId]: defaultConfigForPlayer(player, unavailableKeys(slotId)),
     }));
   };
 
-  const changeSeason = (player, season) => {
+  const changeSeason = (slotId, player, season) => {
     const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === season) || {};
-    const competition = seasonEntry.competitions?.find((item) => item.hasDeepStats)
+    const unavailable = unavailableKeys(slotId);
+    const competition = seasonEntry.competitions?.find((item) => (
+      item.hasDeepStats
+      && !unavailable.has(comparisonKey(player.id, season, item.entryId))
+    ))
+      || seasonEntry.competitions?.find((item) => (
+        !unavailable.has(comparisonKey(player.id, season, item.entryId))
+      ))
       || seasonEntry.competitions?.[0];
     setConfigs((current) => ({
       ...current,
-      [player.id]: {
+      [slotId]: {
         season,
         competitionId: competition?.entryId || '',
         stats: null,
@@ -518,11 +629,11 @@ function PlayerComparison({ playerIds, onClose }) {
     }));
   };
 
-  const changeCompetition = (playerId, competitionId) => {
+  const changeCompetition = (slotId, competitionId) => {
     setConfigs((current) => ({
       ...current,
-      [playerId]: {
-        ...current[playerId],
+      [slotId]: {
+        ...current[slotId],
         competitionId,
         stats: null,
         loading: false,
@@ -535,7 +646,7 @@ function PlayerComparison({ playerIds, onClose }) {
     <div className="comparison-overlay" role="dialog" aria-modal="true" aria-label="Compare players">
       {comparing ? (
         <ComparisonResults
-          players={selected.filter(Boolean)}
+          entries={selected.filter((entry) => entry.player)}
           configs={configs}
           setConfigs={setConfigs}
           onBack={() => setComparing(false)}
@@ -548,9 +659,17 @@ function PlayerComparison({ playerIds, onClose }) {
           selected={selected}
           configs={configs}
           onSelect={selectPlayer}
-          onClear={(slot) => setSelected((current) => current.map((item, index) => index === slot ? null : item))}
-          onAddSlot={() => setSelected((current) => current.length < 4 ? [...current, null] : current)}
-          onRemoveSlot={(slot) => setSelected((current) => current.filter((_, index) => index !== slot))}
+          onClear={(slotId) => setSelected((current) => current.map((entry) => (
+            entry.slotId === slotId ? { ...entry, player: null } : entry
+          )))}
+          onAddSlot={() => setSelected((current) => (
+            current.length < 4
+              ? [...current, { slotId: `slot-${nextSlotId.current++}`, player: null }]
+              : current
+          ))}
+          onRemoveSlot={(slotId) => setSelected((current) => (
+            current.filter((entry) => entry.slotId !== slotId)
+          ))}
           onCompare={() => setComparing(true)}
           onClose={onClose}
           onSeasonChange={changeSeason}

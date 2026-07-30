@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&family=Nunito+Sans:wght@700;800&family=Oswald:wght@600;700&family=Poppins:wght@600;700&family=Roboto+Slab:wght@700;800&display=swap');
 
 /* Base */
 *, *::before, *::after {
@@ -1088,6 +1088,7 @@ main {
   letter-spacing: 1px;
   margin: 0 16px 4px;
   line-height: 1.2;
+  transform-origin: center;
 }
 
 .player-card .team {
@@ -3846,6 +3847,7 @@ main {
 .comparison-slot-player strong {
   color: #fff;
   font-size: 0.8rem;
+  line-height: 1.1;
 }
 
 .comparison-slot-player small,
@@ -3856,6 +3858,25 @@ main {
   font-size: 0.61rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.comparison-slot-player small {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 2px;
+  line-height: 1.15;
+}
+
+.comparison-slot-player small > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comparison-slot-player small > span:first-child {
+  color: #8ec1ff;
+  font-weight: 700;
 }
 
 .comparison-slot-config {
@@ -4369,17 +4390,233 @@ main {
   line-height: 1;
   text-overflow: ellipsis;
   text-transform: uppercase;
+  transform: translateX(-1px);
   white-space: nowrap;
 }
 
 .comparison-player-identity p {
-  overflow: hidden;
-  margin: 2px 0 0;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  margin: 3px 0 0;
   color: #7f91ac;
   font-size: 0.61rem;
-  line-height: 1.15;
+  line-height: 1.08;
+}
+
+.comparison-player-identity p > span {
+  display: block;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.comparison-player-position {
+  color: #8ec1ff;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+.comparison-player-team {
+  color: #7f91ac;
+  font-weight: 500;
+}
+
+.comparison-player-context {
+  display: flex;
+  min-width: 0;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  overflow: hidden;
+  color: #8194b1;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.comparison-player-context span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comparison-player-context span:first-child {
+  flex: 0 0 auto;
+  color: #c7d9f4;
+  font-weight: 750;
+}
+
+.comparison-player-context span + span {
+  padding-left: 7px;
+  border-left: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.league-wordmark {
+  color: #8194b1;
+}
+
+.league-wordmark.league-premier-league {
+  color: #cbbcff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transform: scaleX(0.98);
+  transform-origin: left center;
+}
+
+.league-wordmark.league-serie-a {
+  color: #68b9ff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9em;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-bundesliga {
+  color: #ff6673;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.league-wordmark.league-ligue-1 {
+  color: #f5f5f2;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.06em;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-eredivisie {
+  color: #8ecbff;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 1.08em;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  text-transform: lowercase;
+  transform: scaleX(1.03);
+  transform-origin: left center;
+}
+
+.league-wordmark.league-mls {
+  color: #f3f7ff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.86em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-la-liga {
+  color: #ff625c;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.08em;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  transform: scaleX(0.94);
+  transform-origin: left center;
+}
+
+.league-wordmark.league-championship {
+  color: #ddb95f;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1em;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-liga-mx {
+  color: transparent;
+  background: linear-gradient(90deg, #8fcf19 0 43%, #f1f5f9 43% 54%, #ef443d 54% 100%);
+  background-clip: text;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  -webkit-background-clip: text;
+}
+
+.league-wordmark.league-serie-b {
+  color: #25b768;
+  font-family: 'Roboto Slab', serif;
+  font-size: 1.02em;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-belgian-pro-league {
+  color: #3de3b3;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.league-wordmark.league-mls-next-pro {
+  color: #66e8b7;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.94em;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.league-wordmark.league-expansion-mx {
+  color: #e79ac7;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.94em;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-liga-portugal {
+  color: #e6de4a;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.04em;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-hnl {
+  color: #79baff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-premiership {
+  color: #cbbcff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.04em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.league-wordmark.league-superligaen {
+  color: #ff7575;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.96em;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.league-wordmark.league-usl {
+  color: #f2a65a;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.02em;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
 }
 
 .comparison-player-sample {
@@ -4387,15 +4624,34 @@ main {
   grid-column: 1 / -1;
   align-items: center;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 9px;
   color: #667a97;
   font-size: 0.59rem;
+  line-height: 1.1;
   text-transform: uppercase;
 }
 
 .comparison-player-sample b {
   color: #dbeafe;
   font-size: 0.67rem;
+}
+
+@media (min-width: 641px) {
+  .comparison-player-header {
+    min-height: 112px;
+    grid-template-rows: 42px minmax(20px, 1fr) auto;
+    padding-bottom: 6px;
+  }
+
+  .comparison-player-context {
+    align-self: center;
+    margin-top: 6px;
+  }
+
+  .comparison-player-sample {
+    align-self: end;
+    margin-top: 0;
+  }
 }
 
 .comparison-group-title {
@@ -5247,19 +5503,31 @@ main {
 
   .comparison-player-identity p {
     max-height: var(--comparison-detail-height, 20px);
-    margin-top: calc(2px * var(--comparison-detail-opacity, 1));
+    margin-top: calc(3px * var(--comparison-detail-opacity, 1));
     overflow: hidden;
     opacity: var(--comparison-detail-opacity, 1);
-    line-height: 1.15;
+    line-height: 1.08;
+  }
+
+  .comparison-player-context {
+    max-height: var(--comparison-context-height, 16px);
+    gap: 5px;
+    margin-top: calc(7px * var(--comparison-detail-opacity, 1));
+    opacity: var(--comparison-detail-opacity, 1);
+    font-size: 0.52rem;
+  }
+
+  .comparison-player-context span + span {
+    padding-left: 5px;
   }
 
   .comparison-player-sample {
     gap: 5px;
     max-height: var(--comparison-sample-height, 18px);
-    margin-top: calc(3px * var(--comparison-detail-opacity, 1));
+    margin-top: calc(7px * var(--comparison-detail-opacity, 1));
     overflow: hidden;
     opacity: var(--comparison-detail-opacity, 1);
-    font-size: 0.47rem;
+    font-size: 0.49rem;
   }
 
   .comparison-group-title {
