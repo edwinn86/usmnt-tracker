@@ -48,6 +48,23 @@ function percentileColor(percentile) {
   return `hsl(${(Math.max(0, Math.min(99, percentile)) / 99) * 120}, 75%, 42%)`;
 }
 
+function defaultConfigForPlayer(player) {
+  const season = player.season || player.availableSeasons[0] || '';
+  const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === season)
+    || player.seasonEntries[0]
+    || {};
+  const competition = seasonEntry.competitions?.find((item) => String(item.entryId) === String(seasonEntry.defaultCompetitionId))
+    || seasonEntry.competitions?.find((item) => item.hasDeepStats)
+    || seasonEntry.competitions?.[0];
+  return {
+    season: seasonEntry.seasonName || season,
+    competitionId: competition?.entryId || '',
+    stats: null,
+    loading: false,
+    error: null,
+  };
+}
+
 function CloseIcon() {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -62,9 +79,12 @@ function PlayerSlot({
   players,
   selectedIds,
   loading,
+  config,
   onSelect,
   onClear,
   onRemoveSlot,
+  onSeasonChange,
+  onCompetitionChange,
 }) {
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
@@ -103,26 +123,63 @@ function PlayerSlot({
     setFocused(false);
   };
 
+  const seasonEntry = player
+    ? player.seasonEntries.find((entry) => entry.seasonName === config?.season) || player.seasonEntries[0] || {}
+    : {};
+  const competitions = seasonEntry.competitions || [];
+
   return (
     <section className={`comparison-player-slot ${player ? 'filled' : ''}`}>
       <header>
         <span>Player {slot + 1}</span>
-        {slot > 1 && (
-          <button type="button" onClick={() => onRemoveSlot(slot)} aria-label={`Remove player ${slot + 1} slot`}>
-            Remove slot
-          </button>
-        )}
+        <div className="comparison-slot-actions">
+          {player && (
+            <button type="button" className="comparison-change-player" onClick={() => onClear(slot)} aria-label={`Change ${player.name}`}>
+              Change
+            </button>
+          )}
+          {slot > 1 && (
+            <button
+              type="button"
+              className="comparison-remove-slot"
+              onClick={() => onRemoveSlot(slot)}
+              aria-label={`Remove player ${slot + 1} slot`}
+              title={`Remove player ${slot + 1} slot`}
+            >
+              <CloseIcon />
+            </button>
+          )}
+        </div>
       </header>
 
       {player ? (
-        <div className="comparison-slot-player">
-          <img src={player.photoUrl} alt="" />
-          <span>
-            <strong>{player.name}</strong>
-            <small>{player.position} · {player.teamName}</small>
-          </span>
-          <button type="button" onClick={() => onClear(slot)} aria-label={`Change ${player.name}`}>Change</button>
-        </div>
+        <>
+          <div className="comparison-slot-player">
+            <img src={player.photoUrl} alt="" />
+            <span>
+              <strong>{player.name}</strong>
+              <small>{player.position} · {seasonEntry.teamName || player.teamName}</small>
+            </span>
+          </div>
+          <div className="comparison-slot-config">
+            <label>
+              <span>Season</span>
+              <select value={config?.season || ''} onChange={(event) => onSeasonChange(player, event.target.value)} aria-label={`${player.name} season`}>
+                {player.availableSeasons.map((season) => <option key={season}>{season}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Competition</span>
+              <select value={config?.competitionId || ''} onChange={(event) => onCompetitionChange(player.id, event.target.value)} aria-label={`${player.name} competition`}>
+                {competitions.map((competition) => (
+                  <option key={competition.entryId} value={competition.entryId}>
+                    {competition.name}{competition.hasDeepStats ? '' : ' (summary)'}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </>
       ) : (
         <div
           ref={searchRegionRef}
@@ -165,12 +222,15 @@ function PlayerPicker({
   loading,
   error,
   selected,
+  configs,
   onSelect,
   onClear,
   onAddSlot,
   onRemoveSlot,
   onCompare,
   onClose,
+  onSeasonChange,
+  onCompetitionChange,
 }) {
   const selectedPlayers = selected.filter(Boolean);
   const selectedIds = useMemo(
@@ -202,9 +262,12 @@ function PlayerPicker({
               players={players}
               selectedIds={selectedIds}
               loading={loading}
+              config={player ? configs[player.id] : null}
               onSelect={onSelect}
               onClear={onClear}
               onRemoveSlot={onRemoveSlot}
+              onSeasonChange={onSeasonChange}
+              onCompetitionChange={onCompetitionChange}
             />
           ))}
           {selected.length < 4 && (
@@ -225,32 +288,16 @@ function PlayerPicker({
   );
 }
 
-function PlayerHeader({ player, config, onSeasonChange, onCompetitionChange, onRemove }) {
+function PlayerHeader({ player, config }) {
   const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === config.season)
     || player.seasonEntries[0]
     || {};
-  const competitions = seasonEntry.competitions || [];
   return (
     <article className="comparison-player-header">
-      <button type="button" className="comparison-player-remove" onClick={() => onRemove(player.id)} aria-label={`Remove ${player.name}`}>
-        <CloseIcon />
-      </button>
       <img src={player.photoUrl} alt="" />
       <div className="comparison-player-identity">
         <h3>{player.name}</h3>
         <p>{player.position} · {seasonEntry.teamName || player.teamName}</p>
-      </div>
-      <div className="comparison-player-selects">
-        <select value={config.season} onChange={(event) => onSeasonChange(player, event.target.value)} aria-label={`${player.name} season`}>
-          {player.availableSeasons.map((season) => <option key={season}>{season}</option>)}
-        </select>
-        <select value={config.competitionId} onChange={(event) => onCompetitionChange(player.id, event.target.value)} aria-label={`${player.name} competition`}>
-          {competitions.map((competition) => (
-            <option key={competition.entryId} value={competition.entryId}>
-              {competition.name}{competition.hasDeepStats ? '' : ' (summary)'}
-            </option>
-          ))}
-        </select>
       </div>
       <div className="comparison-player-sample">
         <span><b>{config.stats?.matches ?? seasonEntry.matches ?? 0}</b> matches</span>
@@ -260,19 +307,8 @@ function PlayerHeader({ player, config, onSeasonChange, onCompetitionChange, onR
   );
 }
 
-function ComparisonResults({ players, onBack, onClose, onRemove }) {
+function ComparisonResults({ players, configs, setConfigs, onBack }) {
   const [mode, setMode] = useState('per90');
-  const [configs, setConfigs] = useState(() => Object.fromEntries(players.map((player) => {
-    const season = player.season || player.availableSeasons[0] || '';
-    const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === season) || player.seasonEntries[0] || {};
-    return [player.id, {
-      season: seasonEntry.seasonName || season,
-      competitionId: seasonEntry.defaultCompetitionId || seasonEntry.competitions?.[0]?.entryId || '',
-      stats: null,
-      loading: false,
-      error: null,
-    }];
-  })));
 
   useEffect(() => {
     players.forEach((player) => {
@@ -301,30 +337,7 @@ function ComparisonResults({ players, onBack, onClose, onRemove }) {
           [player.id]: { ...current[player.id], loading: false, error: error.message },
         })));
     });
-  }, [players, configs]);
-
-  const changeSeason = (player, season) => {
-    const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === season) || {};
-    const competition = seasonEntry.competitions?.find((item) => item.hasDeepStats)
-      || seasonEntry.competitions?.[0];
-    setConfigs((current) => ({
-      ...current,
-      [player.id]: {
-        season,
-        competitionId: competition?.entryId || '',
-        stats: null,
-        loading: false,
-        error: null,
-      },
-    }));
-  };
-
-  const changeCompetition = (playerId, competitionId) => {
-    setConfigs((current) => ({
-      ...current,
-      [playerId]: { ...current[playerId], competitionId, stats: null, loading: false, error: null },
-    }));
-  };
+  }, [players, configs, setConfigs]);
 
   const groups = useMemo(() => {
     const groupMap = new Map();
@@ -370,37 +383,27 @@ function ComparisonResults({ players, onBack, onClose, onRemove }) {
   const readyCount = players.filter((player) => configs[player.id]?.stats).length;
 
   return (
-    <section className="comparison-results" aria-labelledby="comparison-results-title">
+    <section className="comparison-results" aria-label="Player comparison results">
       <header className="comparison-results-toolbar">
-        <div>
-          <button type="button" className="comparison-back" onClick={onBack}>← Edit players</button>
-          <span>Advanced-stat comparison</span>
-          <h2 id="comparison-results-title">{players.length} player comparison</h2>
-        </div>
+        <button type="button" className="comparison-back" onClick={onBack}>← Edit comparison</button>
         <div className="comparison-results-actions">
           <div className="comparison-mode" role="group" aria-label="Comparison display mode">
             <button type="button" className={mode === 'totals' ? 'active' : ''} onClick={() => setMode('totals')}>Totals</button>
             <button type="button" className={mode === 'per90' ? 'active' : ''} onClick={() => setMode('per90')}>Per 90</button>
           </div>
-          <button type="button" className="comparison-close" onClick={onClose} aria-label="Close comparison"><CloseIcon /></button>
         </div>
       </header>
 
       <div className="comparison-scroll">
         <div className="comparison-table" style={{ '--comparison-players': players.length }}>
           <div className="comparison-corner">
-            <strong>Players</strong>
-            <span>{mode === 'per90' ? 'Best Per 90 value highlighted.' : 'Best total value highlighted.'}</span>
-            <em>Swipe players →</em>
+            <strong>Stats</strong>
           </div>
           {players.map((player) => (
             <PlayerHeader
               key={player.id}
               player={player}
               config={configs[player.id]}
-              onSeasonChange={changeSeason}
-              onCompetitionChange={changeCompetition}
-              onRemove={onRemove}
             />
           ))}
 
@@ -455,6 +458,7 @@ function ComparisonResults({ players, onBack, onClose, onRemove }) {
 function PlayerComparison({ playerIds, onClose }) {
   const { players, loading, error } = usePlayersData(playerIds);
   const [selected, setSelected] = useState([null, null]);
+  const [configs, setConfigs] = useState({});
   const [comparing, setComparing] = useState(false);
   const onCloseRef = useRef(onClose);
 
@@ -475,13 +479,41 @@ function PlayerComparison({ playerIds, onClose }) {
     };
   }, []);
 
-  const removePlayer = (playerId) => {
-    setSelected((current) => {
-      const next = current.filter((player) => player?.id !== playerId);
-      if (next.filter(Boolean).length < 2) setComparing(false);
-      while (next.length < 2) next.push(null);
-      return next;
-    });
+  const selectPlayer = (slot, player) => {
+    setSelected((current) => current.map((item, index) => index === slot ? player : item));
+    setConfigs((current) => ({
+      ...current,
+      [player.id]: current[player.id] || defaultConfigForPlayer(player),
+    }));
+  };
+
+  const changeSeason = (player, season) => {
+    const seasonEntry = player.seasonEntries.find((entry) => entry.seasonName === season) || {};
+    const competition = seasonEntry.competitions?.find((item) => item.hasDeepStats)
+      || seasonEntry.competitions?.[0];
+    setConfigs((current) => ({
+      ...current,
+      [player.id]: {
+        season,
+        competitionId: competition?.entryId || '',
+        stats: null,
+        loading: false,
+        error: null,
+      },
+    }));
+  };
+
+  const changeCompetition = (playerId, competitionId) => {
+    setConfigs((current) => ({
+      ...current,
+      [playerId]: {
+        ...current[playerId],
+        competitionId,
+        stats: null,
+        loading: false,
+        error: null,
+      },
+    }));
   };
 
   return createPortal(
@@ -489,9 +521,9 @@ function PlayerComparison({ playerIds, onClose }) {
       {comparing ? (
         <ComparisonResults
           players={selected.filter(Boolean)}
+          configs={configs}
+          setConfigs={setConfigs}
           onBack={() => setComparing(false)}
-          onClose={onClose}
-          onRemove={removePlayer}
         />
       ) : (
         <PlayerPicker
@@ -499,12 +531,15 @@ function PlayerComparison({ playerIds, onClose }) {
           loading={loading}
           error={error}
           selected={selected}
-          onSelect={(slot, player) => setSelected((current) => current.map((item, index) => index === slot ? player : item))}
+          configs={configs}
+          onSelect={selectPlayer}
           onClear={(slot) => setSelected((current) => current.map((item, index) => index === slot ? null : item))}
           onAddSlot={() => setSelected((current) => current.length < 4 ? [...current, null] : current)}
           onRemoveSlot={(slot) => setSelected((current) => current.filter((_, index) => index !== slot))}
           onCompare={() => setComparing(true)}
           onClose={onClose}
+          onSeasonChange={changeSeason}
+          onCompetitionChange={changeCompetition}
         />
       )}
     </div>,
