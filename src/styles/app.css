@@ -4462,6 +4462,7 @@ main {
 .league-wordmark.league-premier-league {
   color: #cbbcff;
   font-family: 'Poppins', sans-serif;
+  font-size: 0.9em;
   font-weight: 700;
   letter-spacing: -0.01em;
   transform: scaleX(0.98);
@@ -5337,6 +5338,25 @@ main {
   .player-stats-panel .card-front.player-card {
     min-height: min(594px, calc(100svh - 56px)) !important;
   }
+
+  /* Mobile card sizing otherwise flattens every wordmark to one font size,
+     losing the optical hierarchy established by the different brand faces.
+     Preserve the desktop-rendered sizes explicitly on mobile. */
+  .card-front .league-wordmark { font-size: 14.4px !important; }
+  .card-front .league-premier-league { font-size: 16.2px !important; }
+  .card-front .league-serie-a { font-size: 16.2px !important; }
+  .card-front .league-ligue-1 { font-size: 19.08px !important; }
+  .card-front .league-eredivisie,
+  .card-front .league-la-liga { font-size: 19.44px !important; }
+  .card-front .league-mls { font-size: 19.08px !important; }
+  .card-front .league-championship { font-size: 18px !important; }
+  .card-front .league-serie-b,
+  .card-front .league-usl { font-size: 18.36px !important; }
+  .card-front .league-premiership,
+  .card-front .league-liga-portugal { font-size: 18.72px !important; }
+  .card-front .league-mls-next-pro,
+  .card-front .league-expansion-mx { font-size: 16.92px !important; }
+  .card-front .league-superligaen { font-size: 17.28px !important; }
 
   .card-front .stat-output .stat-label {
     font-size: clamp(0.67rem, 2.8vw, 0.76rem) !important;
