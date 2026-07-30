@@ -172,6 +172,10 @@ function PlayerCardGrid({ playerIds, onOpenAbout, onOpenComparison }) {
       ? 'compact'
       : 'cards'
   ));
+  const [isMobileCarousel, setIsMobileCarousel] = useState(() => (
+    window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px)').matches
+  ));
+  const [mobileCardIndex, setMobileCardIndex] = useState(0);
   const portraitViewRef = useRef(view === 'compact' ? 'compact' : 'cards');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(() => !hasShownSwipeHint);
@@ -180,6 +184,7 @@ function PlayerCardGrid({ playerIds, onOpenAbout, onOpenComparison }) {
     const mobileQuery = window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px) and (max-width: 950px)');
     const landscapePhoneQuery = window.matchMedia('(orientation: landscape) and (max-height: 500px) and (max-width: 950px)');
     const adaptViewToViewport = () => {
+      setIsMobileCarousel(mobileQuery.matches);
       setView((current) => {
         // CSS forces the landscape presentation. Preserve the user's actual
         // view selection so rotating never creates an intermediate state.
@@ -279,6 +284,25 @@ function PlayerCardGrid({ playerIds, onOpenAbout, onOpenComparison }) {
       return (aValue - bValue) * direction || a.name.localeCompare(b.name);
     });
   }, [players, search, selectedLeagues, minimumRating, activeMinimumRating, sortBy, sortDirection]);
+
+  const handleCarouselScroll = (event) => {
+    setShowSwipeHint(false);
+    if (!isMobileCarousel) return;
+
+    const carousel = event.currentTarget;
+    const firstSlide = carousel.firstElementChild;
+    if (!firstSlide) return;
+
+    const gap = Number.parseFloat(window.getComputedStyle(carousel).columnGap) || 0;
+    const step = firstSlide.getBoundingClientRect().width + gap;
+    if (step <= 0) return;
+
+    const nextIndex = Math.max(
+      0,
+      Math.min(visiblePlayers.length - 1, Math.round(carousel.scrollLeft / step))
+    );
+    setMobileCardIndex((current) => current === nextIndex ? current : nextIndex);
+  };
 
   const changeSort = (nextSort) => {
     setSortBy(nextSort);
@@ -435,10 +459,18 @@ function PlayerCardGrid({ playerIds, onOpenAbout, onOpenComparison }) {
         <div
           className="player-grid"
           onPointerDown={() => setShowSwipeHint(false)}
-          onScroll={() => setShowSwipeHint(false)}
+          onScroll={handleCarouselScroll}
         >
-          {visiblePlayers.map((player) => (
-            <PlayerCard key={player.id} {...player} />
+          {visiblePlayers.map((player, index) => (
+            !isMobileCarousel || Math.abs(index - mobileCardIndex) <= 2
+              ? <PlayerCard key={player.id} {...player} />
+              : (
+                <div
+                  key={player.id}
+                  className="flip-container player-card-placeholder"
+                  aria-hidden="true"
+                />
+              )
           ))}
           {visiblePlayers.length === 0 && <p className="status-message">No players match those filters.</p>}
           {error && <p className="status-message error">{error}</p>}

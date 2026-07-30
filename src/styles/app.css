@@ -2141,6 +2141,12 @@ main {
     -webkit-user-select: none;
   }
 
+  .player-card-placeholder {
+    min-height: clamp(480px, 60vh, 560px);
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   /* Card Sizing & Vertical Distribution */
   .player-card {
     flex: 0 0 100% !important;
