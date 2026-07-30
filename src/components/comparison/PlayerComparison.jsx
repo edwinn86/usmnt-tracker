@@ -394,7 +394,22 @@ function ComparisonResults({ players, configs, setConfigs, onBack }) {
         </div>
       </header>
 
-      <div className="comparison-scroll">
+      <div
+        className="comparison-scroll"
+        onScroll={(event) => {
+          const progress = Math.min(1, Math.max(0, event.currentTarget.scrollTop / 52));
+          const style = event.currentTarget.style;
+          event.currentTarget.classList.toggle('headers-fully-collapsed', progress >= 0.98);
+          style.setProperty('--comparison-header-clip', `${52 * progress}px`);
+          style.setProperty('--comparison-header-padding', `${7 - (2 * progress)}px`);
+          style.setProperty('--comparison-header-gap', `${6 * (1 - progress)}px`);
+          style.setProperty('--comparison-photo-size', `${30 * (1 - progress)}px`);
+          style.setProperty('--comparison-detail-height', `${20 * (1 - progress)}px`);
+          style.setProperty('--comparison-sample-height', `${18 * (1 - progress)}px`);
+          style.setProperty('--comparison-detail-opacity', String(1 - progress));
+          style.setProperty('--comparison-name-size', `${0.68 - (0.05 * progress)}rem`);
+        }}
+      >
         <div className="comparison-table" style={{ '--comparison-players': players.length }}>
           <div className="comparison-corner">
             <strong>Stats</strong>
