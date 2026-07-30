@@ -145,7 +145,15 @@ function PlayerCard({
   const hasAdvancedStats = Boolean(activeStats.hasAdvancedStats);
 
   useEffect(() => {
-    if (!activeCompetition?.hasDeepStats || !selectedCompetitionId) return undefined;
+    // Full-pool rosters can contain close to 100 cards. Loading every detailed
+    // competition snapshot at mount time creates a large burst of JSON parsing
+    // and retained card state that can exceed mobile Safari's memory budget.
+    // Defer that work until the card is visible (or explicitly opened).
+    if (
+      (!isActive && !isFlipped)
+      || !activeCompetition?.hasDeepStats
+      || !selectedCompetitionId
+    ) return undefined;
 
     let cancelled = false;
     fetchCompetitionStats(id, selectedCompetitionId)
@@ -164,7 +172,7 @@ function PlayerCard({
       });
 
     return () => { cancelled = true; };
-  }, [id, selectedCompetitionId, activeCompetition?.hasDeepStats]);
+  }, [id, selectedCompetitionId, activeCompetition?.hasDeepStats, isActive, isFlipped]);
 
   const selectSeason = (nextSeason) => {
     const nextSeasonEntry = seasonEntries.find((entry) => entry.seasonName === nextSeason) || {};
