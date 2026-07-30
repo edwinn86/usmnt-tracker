@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import usePlayersData, { fetchCompetitionStats } from '../../hooks/usePlayersData';
-import { leagueWordmarkClass } from '../../leagueBranding';
+import { leagueDisplayName, leagueWordmarkClass } from '../../leagueBranding';
 
 const GROUP_ORDER = ['Shooting', 'Passing', 'Possession', 'Defending', 'Discipline'];
 const LOWER_IS_BETTER = [
@@ -386,7 +386,9 @@ function PlayerHeader({ player, config }) {
       </div>
       <div className="comparison-player-context">
         <span>{config.season}</span>
-        <span className={leagueWordmarkClass(competitionName)}>{competitionName}</span>
+        <span className={leagueWordmarkClass(competitionName)}>
+          {leagueDisplayName(competitionName, { detailed: true })}
+        </span>
       </div>
       <div className="comparison-player-sample">
         <span><b>{config.stats?.matches ?? seasonEntry.matches ?? 0}</b> matches</span>
@@ -396,7 +398,7 @@ function PlayerHeader({ player, config }) {
   );
 }
 
-function ComparisonResults({ entries, configs, setConfigs, onBack }) {
+function ComparisonResults({ entries, configs, setConfigs, onBack, onClose }) {
   const [mode, setMode] = useState('per90');
 
   useEffect(() => {
@@ -480,6 +482,9 @@ function ComparisonResults({ entries, configs, setConfigs, onBack }) {
             <button type="button" className={mode === 'totals' ? 'active' : ''} onClick={() => setMode('totals')}>Totals</button>
             <button type="button" className={mode === 'per90' ? 'active' : ''} onClick={() => setMode('per90')}>Per 90</button>
           </div>
+          <button type="button" className="comparison-close" onClick={onClose} aria-label="Exit comparison">
+            <CloseIcon />
+          </button>
         </div>
       </header>
 
@@ -650,6 +655,7 @@ function PlayerComparison({ playerIds, onClose }) {
           configs={configs}
           setConfigs={setConfigs}
           onBack={() => setComparing(false)}
+          onClose={onClose}
         />
       ) : (
         <PlayerPicker

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { leagueWordmarkClass } from '../../leagueBranding';
+import { leagueDisplayName, leagueWordmarkClass } from '../../leagueBranding';
 
 function percentileColor(percentile) {
   const value = Math.max(0, Math.min(100, Number(percentile) || 0));
@@ -109,7 +109,12 @@ function FullStatsDialog({ name, competition, season, groups, mode, onModeChange
             <span className="full-stats-eyebrow">Comprehensive breakdown</span>
             <h2 id="full-stats-title">{name}</h2>
             <div className="full-stats-meta">
-              <p><span className={leagueWordmarkClass(competition)}>{competition}</span> · {season}</p>
+              <p>
+                <span className={leagueWordmarkClass(competition)}>
+                  {leagueDisplayName(competition, { detailed: true })}
+                </span>
+                {' · '}{season}
+              </p>
             </div>
           </div>
           <div className="full-stats-header-actions">

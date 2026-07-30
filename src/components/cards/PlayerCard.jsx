@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchCompetitionStats } from '../../hooks/usePlayersData';
 import FullStatsDialog from './FullStatsDialog';
-import { leagueWordmarkClass } from '../../leagueBranding';
+import { leagueDisplayName, leagueWordmarkClass } from '../../leagueBranding';
 
 // Percentile colors run from red (low) to green (high).
 function getPercentileColor(percentile) {
@@ -294,7 +294,7 @@ function PlayerCard({
             }}
           />
           <h2>{name}</h2>
-          <p className={leagueWordmarkClass(leagueName, 'league')}>{leagueName}</p>
+          <p className={leagueWordmarkClass(leagueName, 'league')}>{leagueDisplayName(leagueName)}</p>
           <p className="team">{teamName}</p>
           <p className="position">{position}</p>
 
@@ -345,7 +345,7 @@ function PlayerCard({
           <div className="card-back-header">
             <h3 className="back-player-name">{name}</h3>
             <p className={leagueWordmarkClass(activeStats.leagueName || leagueName, 'back-league')}>
-              {activeStats.leagueName || leagueName}
+              {leagueDisplayName(activeStats.leagueName || leagueName, { detailed: true })}
             </p>
             <p className="back-team">{activeStats.teamName || teamName}</p>
           </div>

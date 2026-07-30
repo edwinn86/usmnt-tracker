@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import PlayerCard from '../cards/PlayerCard';
-import { leagueWordmarkClass } from '../../leagueBranding';
+import { leagueDisplayName, leagueWordmarkClass } from '../../leagueBranding';
 
 function ratingClass(rating) {
   const value = Number(rating);
@@ -107,7 +107,11 @@ function PlayerTable({ players, error, sortBy, sortDirection, onSort }) {
                   {positionPresentation(player.position)}
                 </span>
               </td>
-              <td><span className={leagueWordmarkClass(player.leagueName)}>{player.leagueName}</span></td>
+              <td>
+                <span className={leagueWordmarkClass(player.leagueName)}>
+                  {leagueDisplayName(player.leagueName)}
+                </span>
+              </td>
               <td className="numeric-column">{player.age}</td>
               <td className="numeric-column table-value">{player.marketValue}</td>
               <td className="numeric-column">{player.matchesPlayed}</td>

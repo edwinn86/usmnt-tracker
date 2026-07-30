@@ -24,3 +24,28 @@ export function leagueStyleClass(leagueName = '') {
 export function leagueWordmarkClass(leagueName = '', additionalClass = '') {
   return ['league-wordmark', leagueStyleClass(leagueName), additionalClass].filter(Boolean).join(' ');
 }
+
+export function leagueDisplayName(leagueName = '', { detailed = false } = {}) {
+  const name = leagueName.trim();
+  const normalized = name.toLowerCase();
+
+  if (normalized.includes('major league soccer playoff')) return 'MLS Playoffs';
+  if (normalized === 'major league soccer') return 'MLS';
+
+  if (normalized.startsWith('premier league 2 div 2')) return 'PL2 Div 2';
+  if (normalized.startsWith('premier league 2')) return 'PL2';
+
+  if (normalized.startsWith('liga de expansion mx') || normalized.startsWith('liga de expansión mx')) {
+    if (!detailed) return 'Liga Expansión MX';
+    const stage = name.match(/\b(Apertura|Clausura|Playoff)\b/i)?.[0];
+    return stage ? `Liga Expansión MX · ${stage}` : 'Liga Expansión MX';
+  }
+
+  if (normalized.startsWith('liga mx')) {
+    if (!detailed) return 'Liga MX';
+    const stage = name.match(/\b(Guard1anes\s+)?(Apertura|Clausura)(?:\s+Playoff)?\b/i)?.[0];
+    return stage ? `Liga MX · ${stage}` : 'Liga MX';
+  }
+
+  return name;
+}
