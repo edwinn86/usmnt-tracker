@@ -113,7 +113,7 @@ function FullStatsDialog({ name, competition, season, groups, mode, onModeChange
                 <span className={leagueWordmarkClass(competition)}>
                   {leagueDisplayName(competition, { detailed: true })}
                 </span>
-                {' · '}{season}
+                {'\u00A0\u00A0'}{season}
               </p>
             </div>
           </div>

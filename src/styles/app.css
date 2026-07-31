@@ -4465,13 +4465,24 @@ main {
   color: #8194b1;
 }
 
-.league-wordmark.league-premier-league {
+/* .league-wordmark.league-premier-league {
   color: #cbbcff;
   font-family: 'Poppins', sans-serif;
   font-size: 0.9em;
   font-weight: 700;
   letter-spacing: -0.01em;
   transform: scaleX(0.98);
+  transform-origin: left center;
+} */
+
+.league-wordmark.league-premier-league {
+  color: #cbbcff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: inline-block;
+  transform: scaleX(1.02) translateY(-0.25px);
   transform-origin: left center;
 }
 
@@ -4489,10 +4500,12 @@ main {
   font-family: 'Inter', sans-serif;
   font-weight: 800;
   letter-spacing: -0.02em;
+  display: inline-block;
+  transform: scaleX(1.05) scaleY(1.05) translateY(0.5px);
 }
 
 .league-wordmark.league-ligue-1 {
-  color: #f5f5f2;
+  color: #1f6eff;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 1.06em;
   font-weight: 800;
@@ -4501,13 +4514,13 @@ main {
 }
 
 .league-wordmark.league-eredivisie {
-  color: #8ecbff;
+  color: #8eaaff;
   font-family: 'Nunito Sans', sans-serif;
   font-size: 1.08em;
   font-weight: 800;
   letter-spacing: -0.045em;
   text-transform: lowercase;
-  transform: scaleX(1.03);
+  transform: scaleX(1.03) scaleY(1.1) translateY(-.5px);
   transform-origin: left center;
 }
 
@@ -4527,7 +4540,7 @@ main {
   font-weight: 800;
   letter-spacing: 0.025em;
   text-transform: uppercase;
-  transform: scaleX(0.94);
+  transform: scaleX(1.05);
   transform-origin: left center;
 }
 
